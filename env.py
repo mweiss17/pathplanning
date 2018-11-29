@@ -1,6 +1,18 @@
 import numpy as np
 import pandas as pd
 import math
+from enum import Enum
+
+class Ground(Enum):
+    RIGHT_LANE = 0
+    WRONG_LANE = 1
+    PARTIALLY_OUT_OF_ROAD = 2
+    LOST = 3
+
+class SafetyStatus(Enum):
+    FINE = 1
+    COLLISION = -1
+    LOST = 2
 
 class Manager(object):
     dt = 1.0
@@ -25,10 +37,12 @@ class Manager(object):
 
 class Bot(object):
     limit = .2
+    radius = 2 # Fat Sphere Duckie
     def __init__(self, x, y, theta):
         self.x = x
         self.y = y
         self.theta = theta
+        self.plan = np.array([])
 
     def pos(self):
         return (self.x, self.y, self.theta)
@@ -70,12 +84,32 @@ class World(object):
     world_dim = (100, 100)
     speed_of_light = 1
 
-    def __init__(self, my_pos, other_pos, instability):
-        self.my_bot = Bot(my_pos)
-        self.other_pos = Bot(other_pos)
-        self.instability = instability
+    def __init__(self):
+        self.bots = [MyBot(), SlowBot()] # Always keep MyBot as first bot otherwise my sh*tty code will break
 
-    def step(new_pos):
-        self.my_pos =
+    def step(self, new_pos):
+        for bot in self.bots:
+            bot.sample_plan()
 
-    def check_pos(x, y):
+        ground_state = self.check_ground(self.bots[0])
+        safety_state = self.check_safety(self.bots)
+
+    def check_safety(self, bots):
+        my_bot = bots.pop()
+        x1, y1, _ = my_bot.pos()
+        for bot in bots:
+            x2, y2, _ = bot.pos()
+            if abs(x1 - x2) < 2 * bot.radius and abs(y1 - y2) < 2 * bot.radius:
+                return SafetyStatus.COLLISION
+        return SafetyStatus.FINE
+
+    def check_ground(self, bot):
+        x = bot.pos()[0]
+        if abs(x) < 5:
+            return Ground.RIGHT_LANE
+        elif x < -5 and x > -15:
+            return Ground.WRONG_LANE
+        elif (x > - 15 - bot.radius and x < -15 + bot.radius) or (x > 5 - bot.radius and x < 5 + bot.radius):
+            return Ground.PARTIALLY_OUT_OF_ROAD
+        else:
+            return Ground.LOST
