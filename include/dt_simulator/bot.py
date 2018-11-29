@@ -3,7 +3,7 @@ import math
 
 class Bot(object):
     limit = .2
-    radius = 2 # Fat Sphere Duckie
+    radius = 1 # Fat Sphere Duckie
     def __init__(self, x, y, theta, dt=1.0):
         self.x = x
         self.y = y
