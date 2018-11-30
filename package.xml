@@ -1,13 +1,14 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>dt_simulator</name>
+  <name>pathplan_uncertainty</name>
   <version>0.0.0</version>
-  <description>The dt_simulator package</description>
+  <description>The pathplan_uncertainty package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="martin.weiss@umontreal.ca">Martin Weiss</maintainer>
+  <maintainer email="vincent.mai@umontreal.ca">Vincent Mai</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -51,8 +52,10 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>rospy</build_depend>
   <build_depend>geometry_msgs</build_depend>
+  <build_depend>message_generation</build_depend>
   <exec_depend>rospy</exec_depend>
-
+  <exec_depend>message_runtime</exec_depend>
+  
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->

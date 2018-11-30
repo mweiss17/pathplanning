@@ -1,0 +1,10 @@
+ground_type_protocol:
+  right_lane: 0
+  wrong_lane: 1
+  partially_out: 2
+  completely_out: 3
+
+safety_status_protocol:
+  fine: 1
+  collision: -1
+  lost: -2

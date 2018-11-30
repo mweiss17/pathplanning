@@ -1,0 +1,12 @@
+<launch>
+    <arg name="param_file_name" default="sim" doc="Specify a param file." />
+
+    <arg name="pkg_name" value="pathplan_uncertainty"/>
+    <arg name="node_name" default="dt_simulator_node"/>
+
+    
+    <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true">
+        <rosparam command="load" file="$(find pathplan_uncertainty)/config/$(arg param_file_name).yaml"/>
+    </node>
+
+</launch>
