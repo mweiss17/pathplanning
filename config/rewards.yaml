@@ -1,7 +1,7 @@
-status_fine: 1
-status_collision: -1000
-status_lost: -1000
-type_right_lane: 1
-type_wrong_lane: -1
-type_partially_out: -3
-type_lost: -1000
+reward:
+  status_fine: 1
+  status_collision: -1000
+  type_right_lane: 1
+  type_wrong_lane: -1
+  type_partially_out: -3
+  type_lost: -1000

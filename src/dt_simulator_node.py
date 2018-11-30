@@ -6,7 +6,6 @@ from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import Int32
 from geometry_msgs.msg import Pose2D
 from pathplan_uncertainty.srv import GroundType
-from dt_simulator.manager import Manager
 from dt_simulator.world import World, DroveOffTheFreakinRoad, RammedAFreakinDuckiebot 
 
 
