@@ -19,6 +19,7 @@ Can be launched using:
 You can change the simulations parameters such as the time step duration `dt` or the start pose, radius and type of each bot in the `config/sim.yaml` file.
 
 Warning: for now, the only type implemented for the other duckie is the SlowDuckie.
+
 Warning: for now, the parameter "velocity" is not used and the velocity is hard-coded.
 
 ### Test
