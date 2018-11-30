@@ -27,10 +27,8 @@ class ManagerNode(object):
     def __init__(self):
 
         # Parameters load
+
         
-
-
-
         self.manager = Manager()
 
         # Subscribers

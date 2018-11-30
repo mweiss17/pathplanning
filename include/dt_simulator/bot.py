@@ -1,21 +1,25 @@
 import numpy as np
 import math
+import rospy
+from collections import deque
 
 class Bot(object):
     limit = .2
-    radius = 1 # Fat Sphere Duckie
-    def __init__(self, x, y, theta, dt=1.0):
-        self.x = x
-        self.y = y
-        self.theta = theta
+    def __init__(self, duckie_params, dt):
+        self.x = duckie_params["start_pose"][0]
+        self.y = duckie_params["start_pose"][1]
+        self.theta = duckie_params["start_pose"][2]
         self.plan = np.array([])
         self.dt = dt
+        self.radius = duckie_params["radius"]
+        self.type = duckie_params["type"]
+
 
     def pos(self):
         return (self.x, self.y, self.theta)
 
     def update_plan(self, plan):
-        self.plan = plan
+        self.plan = deque(plan)
 
     def drive(self, angle, speed):
         if abs(self.theta - angle) > self.limit:
@@ -28,25 +32,15 @@ class Bot(object):
 
 
 class MyBot(Bot):
-    def __init__(self, dt):
-        x = 0
-        y = 0
-        theta = 0
-        super(MyBot, self).__init__(x, y, theta, dt)
 
     def sample_plan(self):
         if len(self.plan) != 0:
-            angle = self.plan.pop()
+            angle = self.plan.popleft()
             self.drive(angle, 1.0)
         else:
             self.drive(0, 0)
 
 class SlowBot(Bot):
-    def __init__(self, dt):
-        x = 0
-        y = 10
-        theta = 0
-        super(SlowBot, self).__init__(x, y, theta, dt)
 
     def sample_plan(self):
         self.drive(0, .25)

@@ -1,4 +1,6 @@
 std_msgs/Float32 x
 std_msgs/Float32 y
+std_msgs/Float32 theta
+std_msgs/Float32 bot_radius
 ---
 std_msgs/Int32 ground_type
