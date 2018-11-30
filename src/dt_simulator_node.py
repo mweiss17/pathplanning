@@ -34,7 +34,7 @@ class SimNode(object):
         self.right_lane = rospy.get_param("/dt_simulator_node/ground_type_protocol/right_lane")
         self.wrong_lane = rospy.get_param("/dt_simulator_node/ground_type_protocol/wrong_lane")
         self.part_out = rospy.get_param("/dt_simulator_node/ground_type_protocol/partially_out")
-        self.compl_out = rospy.get_param("/dt_simulator_node/ground_type_protocol/completely_out")
+        self.compl_out = rospy.get_param("/dt_simulator_node/ground_type_protocol/lost")
 
         # World
         self.world = World(self.dt, self.our_duckie_params, self.other_duckie_params)
@@ -44,6 +44,7 @@ class SimNode(object):
         self.pub_pose_other_duckie = rospy.Publisher("/sim/gt/pose_other_duckie",Pose2D, queue_size=1)
         self.pub_safety_status = rospy.Publisher("/sim/gt/our_duckie_safety_status",Int32, queue_size=1)
         self.pub_our_duckie_ground_type = rospy.Publisher("/sim/gt/our_duckie_ground_type",Int32, queue_size=1)
+
         self.pub_pose_our_duckie_obs = rospy.Publisher("/sim/obs/pose_our_duckie",Pose2D, queue_size=1)
         self.pub_pose_other_duckie_obs = rospy.Publisher("/sim/obs/pose_other_duckie",Pose2D, queue_size=1)
         
