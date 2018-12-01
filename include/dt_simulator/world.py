@@ -1,7 +1,7 @@
 import logging
 import rospy
 from bot import MyBot, SlowBot
-from enums import Ground, SafetyStatus
+from dt_comm.enums import Ground, SafetyStatus
 
 class RammedAFreakinDuckiebot(Exception):
     pass
@@ -17,6 +17,7 @@ class World(object):
 
     def __init__(self, dt, our_duckie_params, other_duckie_params):
         self.dt = dt
+        self.time = 0
         # Creating our duckie
         self.my_bot = MyBot(our_duckie_params, self.dt)
         
@@ -31,15 +32,15 @@ class World(object):
 
     def step(self):
         for bot in [self.my_bot, self.other_bot]:
-            rospy.loginfo("[sim_node][world] Step: " + bot.type + ": " + str(bot.pos()))
+            rospy.loginfo("[sim_node][world] Step at time: " + str(self.time) + " with "+ bot.type + ": " + str(bot.pos()))
             bot.sample_plan()
 
+        self.time += self.dt
         self.my_bot_ground_type = self.check_ground(self.my_bot.pos(), self.my_bot.radius)
         self.my_bot_safety_status = self.check_safety(self.my_bot, self.other_bot)
 
     def get_state(self):
-        #loginfo("[SimNode][World] Get state: my_bot_safety_status = " + str(my_bot_safety_status))
-        return self.my_bot.pos(), self.my_bot_safety_status, self.my_bot_ground_type, self.other_bot.pos()
+        return self.time, self.my_bot.pos(), self.my_bot_safety_status, self.my_bot_ground_type, self.other_bot.pos()
 
     def update_our_duckie_plan(self, plan):
         self.my_bot.update_plan(plan)

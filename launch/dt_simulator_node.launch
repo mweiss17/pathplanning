@@ -2,10 +2,8 @@
     <arg name="pkg_name" value="pathplan_uncertainty"/>
     <arg name="node_name" default="dt_simulator_node"/>
 
+    <rosparam command="load" file="$(find pathplan_uncertainty)/config/sim.yaml"/>
+    <rosparam command="load" file="$(find pathplan_uncertainty)/config/communications.yaml"/>
     
-    <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true">
-        <rosparam command="load" file="$(find pathplan_uncertainty)/config/sim.yaml"/>
-        <rosparam command="load" file="$(find pathplan_uncertainty)/config/communications.yaml"/>
-    </node>
-
+    <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true"/>
 </launch>

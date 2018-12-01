@@ -1,12 +1,14 @@
-dt: 0.2
 
-our_duckie:
-  start_pose: [0.0, 0.0, 0] # [x,y, theta]
-  velocity: 1.0
-  radius: 1.0
-  type: "our_duckie"
-other_duckie:
-  start_pose: [0.0, 10.0, 0] # [x,y, theta]
-  velocity: 0.25
-  radius: 1.0
-  type: "slow_duckie" # Available: slow_duckie.     To be implemented: unstable_duckie, ...
+sim:
+
+  dt: 0.2
+  our_duckie:
+    start_pose: [0.0, 0.0, 0] # [x,y, theta]
+    velocity: 1.0
+    radius: 1.0
+    type: "our_duckie"
+  other_duckie:
+    start_pose: [0.0, 10.0, 0] # [x,y, theta]
+    velocity: 0.25
+    radius: 1.0
+    type: "slow_duckie" # Available: slow_duckie.     To be implemented: unstable_duckie, ...
