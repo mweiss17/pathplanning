@@ -5,14 +5,14 @@ from .Planner import RRT_Dubins
 
 
 class Agent(object):
-    lane_width = 10
     num_lanes = 2
     world_dim = (100, 100)
     speed_of_light = 1
 
-    def __init():
+    def __init(roadwidth,horizon):
 
-        self.ourduckie_horizon = 12
+        self.ourduckie_horizon = ourduckie_horizon                              ##in terms of horizon or time
+        self.lane_width = roadwidth
         self.time_steps = 12 #??
         self.ourPlanner = RRT_Dubins(self.lane_width, self.ourduckie_horizon)
 
