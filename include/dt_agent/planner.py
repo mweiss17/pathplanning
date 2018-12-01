@@ -14,11 +14,7 @@ class RRT_Dubins(Planner):
 		super(RRT, self).__init__()
 		self.start =  [0.0, 0.0, np.deg2rad(0.0)]
 		self.goal =  [0.0, 12.0, np.deg2rad(0.0)]
-
-
-		self.current
-
-		self.time_steps
+		self.time_steps = 20
 		#self.obstacle_model = driving_towards_us() 						##args
 
 		self.gridsizex = gridsizex
@@ -36,7 +32,9 @@ class RRT_Dubins(Planner):
 		self.rrt.setValues(self.start, self.goal,randAreax=[-gridsizex/2.0, gridsizex/2.0], randAreay=[0.0, gridsizey], obstacleList = self.static_obstacleList)  #optional, nothing really changes
 		path = self.rrt.Planning()
 		final_path = postprocess_plan(path)
-
+		orientation_seq = convert_to_thetas(final_path)
+		return orientation_seq
+		
 	def postprocess_plan():
 		pass
 

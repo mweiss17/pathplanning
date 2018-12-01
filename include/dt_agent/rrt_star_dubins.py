@@ -63,7 +63,7 @@ class RRT():
         for i in range(self.maxIter):
             if(i % 5 == 0):
                 self.goalSampleRate += 3
-            rnd = self.get_random_point() #slowly increase curriculum?
+            rnd = self.get_random_point() 
             nind = self.GetNearestListIndex(self.nodeList, rnd)
 
             newNode = self.steer(rnd, nind)
