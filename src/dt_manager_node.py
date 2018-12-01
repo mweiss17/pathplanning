@@ -23,9 +23,8 @@ class ManagerNode(object):
         rwrd_lost = rospy.get_param("/dt_manager_node/reward/type_lost")
         self.rewards = {"fine": rwrd_fine, "collision": rwrd_collision, "right_lane": rwrd_right_lane, "wrong_lane": rwrd_wrong_lane, "part_out": rwrd_part_out, "lost": rwrd_lost}
 
-        #self.manager = Manager(self.dt, self.rewards)
-
-
+        # Manager object
+        self.manager = Manager(self.dt, self.rewards)
 
         # Subscribers
         self.sub_pose_our_duckie = rospy.Subscriber("/sim/pose_our_duckie",Pose2D, self.pose_our_duckie_cb)
@@ -35,19 +34,55 @@ class ManagerNode(object):
 
         rospy.loginfo("[ManagerNode] Initialized.")
 
+        # Temporary variables
+        self.our_duckie_pose = []
+        self.received_our_duckie_pose = False
+        self.other_duckie_pose = []
+        self.received_other_duckie_pose = False
+        self.safety_status = 0
+        self.received_safety_status = False
+        self.ground_type = 0
+        self.received_ground_type = False
 
     def pose_our_duckie_cb(self, pose_msg):
-        
-        pass
+        x = pose_msg.x
+        y = pose_msg.y
+        theta = pose_msg.theta
+        self.our_duckie_pose = (x, y, theta)
+        self.received_our_duckie_pose = True
+
+        self.check_and_step()
 
     def pose_other_duckie_cb(self, pose_msg):
-        pass
+        x = pose_msg.x
+        y = pose_msg.y
+        theta = pose_msg.theta
+        self.other_duckie_pose = (x, y, theta)
+        self.received_other_duckie_pose = True
+
+        self.check_and_step()
 
     def safety_status_cb(self, int_msg):
-        pass
+        self.safety_status = int_msg.data
+        self.received_safety_status = True
+
+        self.check_and_step()
 
     def duckie_ground_type_cb(self, int_msg):
-        pass
+        self.ground_type = int_msg.data
+        self.received_ground_type = True
+
+        self.check_and_step()
+
+    def check_and_step(self):
+        received_all = self.received_ground_type and self.received_safety_status and self.received_our_duckie_pose and self.received_other_duckie_pose
+        if received_all:
+            rospy.loginfo("[ManagerNode] Received all!")
+            self.manager.step(self.our_duckie_pose, self.other_duckie_pose, self.safety_status, self.ground_type)
+            received_ground_type = False
+            received_safety_status = False
+            received_other_duckie_pose = False
+            received_our_duckie_pose = False
 
 
     def onShutdown(self):
