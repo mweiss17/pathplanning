@@ -15,8 +15,8 @@ show_animation = True
 
 class RRT():
 
-    def __init__(self, start, goal, obstacleList, randArea,
-                 goalSampleRate=10, maxIter=50):
+    def __init__(self, start, goal, obstacleList, randAreax, randAreay,
+                 goalSampleRate=10, maxIter=60):
         """
         Setting Parameter
 
@@ -28,8 +28,10 @@ class RRT():
         """
         self.start = Node(start[0], start[1], start[2])
         self.end = Node(goal[0], goal[1], goal[2])
-        self.minrand = randArea[0]
-        self.maxrand = randArea[1]
+        self.minrandx = randAreax[0]
+        self.maxrandx = randAreax[1]
+        self.minrandy = randAreay[0]
+        self.maxrandy = randAreay[1]
         self.goalSampleRate = goalSampleRate
         self.maxIter = maxIter
         self.obstacleList = obstacleList
@@ -47,13 +49,15 @@ class RRT():
         """
         self.start = Node(start[0], start[1], start[2])
         self.end = Node(goal[0], goal[1], goal[2])
-        self.minrand = randArea[0]
-        self.maxrand = randArea[1]
+        self.minrandx = randAreax[0]
+        self.maxrandx = randAreax[1]
+        self.minrandy = randAreay[0]
+        self.maxrandy = randAreay[1]
         self.goalSampleRate = goalSampleRate
         self.maxIter = maxIter
         self.obstacleList = obstacleList
 
-    def Planning(self, animation=True):
+    def Planning(self, animation=False):
 
         self.nodeList = [self.start]
         for i in range(self.maxIter):
@@ -135,8 +139,8 @@ class RRT():
     def get_random_point(self):
 
         if random.randint(0, 100) > self.goalSampleRate:
-            rnd = [random.uniform(self.minrand, self.maxrand),
-                   random.uniform(self.minrand, self.maxrand),
+            rnd = [random.uniform(self.minrandx, self.maxrandx),
+                   random.uniform(self.minrandy, self.maxrandy),
                    random.uniform(-math.pi, math.pi)
                    ]
         else:  # goal point sampling
@@ -275,39 +279,6 @@ class Node():
         self.parent = None
 
 
-def main():
-    print("Start rrt star with dubins planning")
-
-    # ====Search Path with RRT====
-    obstacleList = [
-        (5, 5, 1),
-        (3, 6, 2),
-        (3, 8, 2),
-        (3, 10, 2),
-        (7, 5, 2),
-        (9, 5, 2)
-    ]  # [x,y,size(radius)]
-
-    # Set Initial parameters
-    start = [0.0, 0.0, np.deg2rad(0.0)]
-    goal = [10.0, 10.0, np.deg2rad(0.0)]
-
-    rrt = RRT(start, goal, randArea=[-2.0, 15.0], obstacleList=obstacleList)
-    path = rrt.Planning(animation=show_animation)
-
-    # Draw final path
-    if show_animation:
-        rrt.DrawGraph()
-        plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-        plt.grid(True)
-        plt.pause(0.001)
-
-        plt.show()
 
 
-if __name__ == '__main__':
-    main()
-
-
-#distance calc vs reward calc
 

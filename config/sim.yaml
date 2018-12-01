@@ -10,3 +10,6 @@ other_duckie:
   velocity: 0.25
   radius: 1.0
   type: "slow_duckie" # Available: slow_duckie.     To be implemented: unstable_duckie, ...
+road:
+  width: 10.0
+  horizon_length: 12.0

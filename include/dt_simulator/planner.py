@@ -14,35 +14,31 @@ class RRT_Dubins(Planner):
 		super(RRT, self).__init__()
 		self.start =  [0.0, 0.0, np.deg2rad(0.0)]
 		self.goal =  [0.0, 12.0, np.deg2rad(0.0)]
+
+
 		self.current
+
 		self.time_steps
-		self.obstacle_model = driving_towards_us() 						##argss
+		#self.obstacle_model = driving_towards_us() 						##args
+
 		self.gridsizex = gridsizex
 		self.gridsizey = gridsizey
 
-    	self.static_obstacleList = [										##for now
-							        # (0, 10, 1),
-							        # (3, 6, 2),
-							    	]  # [x,y,size(radius)]		
+    	self.static_obstacleList = []  # [x,y,size(radius)]			##for now, populated when other_duckie obs is receied
+							    		
+	    self.rrt = RRT(self.start, self.goal, randAreax=[-gridsizex/2.0, gridsizex/2.0], randAreay=[0.0, gridsizey], obstacleList = self.static_obstacleList)
+	   
 
-
-	    self.rrt = RRT(start, goal, randAreax=[-gridsizex/2.0, gridsizex/2.0], randAreay=[0.0, gridsizey], obstacleList=obstacleList)
-	    #grid
-
-	def new_obs_received():
-
-	def update_plan(other_duckie_obs, radii): #for now only xy is important in obstacle list, will factor in theta later
-		obstacle_list = []
+	def update_plan(other_duckie_obs, radii): 							#for now only xy is important in obstacle list, will factor in theta later
+		self.static_obstacleList = []
 		for obs, radius in zip(other_duckie_obs,radii):
-			obstacle_list.append(obs.x, obs.y, radius)  
-		self.rrt.setValues(obs)
-		path = self.rrt.Planning
+			self.static_obstacleList.append(obs.x, obs.y, radius)  
+		self.rrt.setValues(self.start, self.goal,randAreax=[-gridsizex/2.0, gridsizex/2.0], randAreay=[0.0, gridsizey], obstacleList = self.static_obstacleList)  #optional, nothing really changes
+		path = self.rrt.Planning()
+		final_path = postprocess_plan(path)
 
 	def postprocess_plan():
-
-
-
-		
+		pass
 
 	def generate_goal_for_rrt():										##later, for now coded to 12 distance units ahead in center of lane
 		pass
