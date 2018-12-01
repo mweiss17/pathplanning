@@ -35,8 +35,12 @@ class RRT_Dubins(Planner):
 		orientation_seq = convert_to_thetas(final_path)
 		return orientation_seq
 		
-	def postprocess_plan():
-		pass
+	def convert_to_thetas(xy_points):
+		angles = []
+		for point_itr in range(len(xy_points)-1):
+
+			angles.append(math.atan2(xy_points[point_itr+1][1]-xy_points[point_itr][1], xy_points[point_itr+1][0]-xy_points[point_itr][0]))
+		return angles
 
 	def generate_goal_for_rrt():										##later, for now coded to 12 distance units ahead in center of lane
 		pass
