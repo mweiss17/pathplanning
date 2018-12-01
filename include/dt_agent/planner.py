@@ -34,7 +34,10 @@ class RRT_Dubins(Planner):
 		final_path = postprocess_plan(path)
 		orientation_seq = convert_to_thetas(final_path)
 		return orientation_seq
-		
+	
+	def postprocess_plan(path):
+		return path
+
 	def convert_to_thetas(xy_points):
 		angles = []
 		for point_itr in range(len(xy_points)-1):
