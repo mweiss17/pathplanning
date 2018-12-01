@@ -2,6 +2,7 @@ import numpy as np
 import math
 import rospy
 from collections import deque
+from .rrt_star_dubins import RRT
 
 class Bot(object):
     limit = .2
@@ -44,3 +45,4 @@ class SlowBot(Bot):
 
     def sample_plan(self):
         self.drive(0, .25)
+

@@ -2,6 +2,7 @@ import logging
 import rospy
 from bot import MyBot, SlowBot
 from enums import Ground, SafetyStatus
+from .Planner import RRT_Dubins
 
 class RammedAFreakinDuckiebot(Exception):
     pass
@@ -26,8 +27,23 @@ class World(object):
         else:
             rospy.logerr("[sim_node][world] Unknown other duckie type. Look in pathplan_uncertainty/config/sim.yaml and make sure it is fine!")
         
+
+
+        self.ourduckie_horizon = 12
+        self.time_steps = 12 #??
+        self.ourPlanner = RRT_Dubins(lane_width, self.ourduckie_horizon)
+
+
+
         self.my_bot_safety_status = self.check_safety(self.my_bot, self.other_bot)
         self.my_bot_ground_type = self.check_ground(self.my_bot.pos(), self.my_bot.radius)
+
+    def compute_our_plan(other_duckie_obs): 
+        self.ourPlanner.update_plan(other_duckie_obs,[self.other_bot.radius])
+        
+        #time step info pass on
+        #send back computed plan in orientation_seq format
+
 
     def step(self):
         for bot in [self.my_bot, self.other_bot]:
