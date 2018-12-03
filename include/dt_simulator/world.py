@@ -15,9 +15,10 @@ class World(object):
     world_dim = (100, 100)
     speed_of_light = 1
 
-    def __init__(self, dt, our_duckie_params, other_duckie_params):
+    def __init__(self, dt, our_duckie_params, other_duckie_params, world_params):
         self.dt = dt
         self.time = 0
+        self.road_width = world_params["road_width"]
         # Creating our duckie
         self.my_bot = MyBot(our_duckie_params, self.dt)
         
@@ -57,10 +58,11 @@ class World(object):
     def check_ground(self, pose, radius):
         # Returns the type of ground for a duckie pose
         x = pose[0]
-        if abs(x) < 5:
+        if abs(x) <= 0.25*self.road_width:
             return Ground.RIGHT_LANE
-        elif x < -5 and x > -15:
+        elif x < -0.25*self.road_width and x => -0.75*self.road_width :
             return Ground.WRONG_LANE
-        elif (x < - 15 - radius and x > -15 + radius) or (x > 5 - radius and x < 5 + radius):
+        elif (x > -0.75*self.road_width - radius and x < -0.75*self.road_width) or (x > 0.25*self.road_width and x < 0.25*self.road_width + radius):
             return Ground.PARTIALLY_OUT_OF_ROAD
-        return Ground.LOST
+        else:
+            return Ground.LOST

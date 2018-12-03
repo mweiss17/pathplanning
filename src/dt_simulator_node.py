@@ -16,6 +16,10 @@ class SimNode(object):
         # Parameters
         self.dt = rospy.get_param("/sim/dt")
 
+        self.road_width = rospy.get_param("/sim/world/road/width")
+
+        self.world_params = {"road_width": self.road_width}
+
         self.our_duckie_start_pose = rospy.get_param("/sim/our_duckie/start_pose")
         self.our_duckie_velocity = rospy.get_param("/sim/our_duckie/velocity")
         self.our_duckie_radius = rospy.get_param("/sim/our_duckie/radius")
@@ -33,7 +37,7 @@ class SimNode(object):
 
       
         # World
-        self.world = World(self.dt, self.our_duckie_params, self.other_duckie_params)
+        self.world = World(self.dt, self.our_duckie_params, self.other_duckie_params, self.world_params)
 
         # Publishers
         self.pub_pose_our_duckie = rospy.Publisher("/sim/gt/pose_our_duckie",Pose2DTimeStep, queue_size=1)
