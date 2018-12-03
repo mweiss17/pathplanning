@@ -3,8 +3,8 @@
 import rospy
 from std_msgs.msg import Int32
 from geometry_msgs.msg import Pose2D
-from pathplan_uncertainty.msg import Int32TimeStep, Pose2DTimeStep
-from pathplan_uncertainty.srv import GroundType
+from pathplan_uncertainty.msg import Int32TimeStep, Pose2DTimeStep, WorldState
+from pathplan_uncertainty.srv import ManagerRecords, ManagerRecordsResponse
 from dt_manager.manager import Manager
 
 
@@ -25,75 +25,34 @@ class ManagerNode(object):
         # Manager object
         self.manager = Manager(self.rewards)
 
-        # Subscribers
-        self.sub_pose_our_duckie = rospy.Subscriber("/sim/gt/pose_our_duckie",Pose2DTimeStep, self.pose_our_duckie_cb)
-        self.sub_pose_other_duckie = rospy.Subscriber("/sim/gt/pose_other_duckie",Pose2DTimeStep, self.pose_other_duckie_cb)
-        self.sub_safety_status = rospy.Subscriber("/sim/gt/our_duckie_safety_status",Int32TimeStep, self.safety_status_cb)
-        self.ground_type = rospy.Subscriber("/sim/gt/our_duckie_ground_type", Int32TimeStep, self.duckie_ground_type_cb)
-
+        # Subscriber
+        self.sub_pose_our_duckie = rospy.Subscriber("/sim/gt/world_state",WorldState, self.world_state_cb)
         
-
-        # Received messages by time
-        self.received_messages = {}
-
+        # Service
+        self.get_records_serv = rospy.Service('/manager/get_manager_records',ManagerRecords, self.manager_records_cb_srv)
 
         rospy.loginfo("[ManagerNode] Initialized.")
 
 
-    def pose_our_duckie_cb(self, pose_ts_msg):
-        # Data out of message
-        time = pose_ts_msg.time
-        x = pose_ts_msg.x
-        y = pose_ts_msg.y
-        theta = pose_ts_msg.theta
-        # Check if received_messages dict already has this time as an entry
-        if time not in self.received_messages: # if not, create it
-            self.received_messages[time] = {}
-        # Add our duckie pose to received_messages
-        self.received_messages[time]['pose_our_duckie'] = (x, y, theta)
+    def world_state_cb(self, world_step_msg):
+        self.manager.step(world_step_msg)
 
-        # Check if all other messages have been received; if yes, send to manager
-        self.check_and_step(time)
 
-    def pose_other_duckie_cb(self, pose_ts_msg):
-        # See pose_our_duckie_cb for comments on structure
-        time = pose_ts_msg.time
-        x = pose_ts_msg.x
-        y = pose_ts_msg.y
-        theta = pose_ts_msg.theta
-        if time not in self.received_messages:
-            self.received_messages[time] = {}
-        self.received_messages[time]['pose_other_duckie'] = (x, y, theta)
-
-        self.check_and_step(time)
-
-    def safety_status_cb(self, int_ts_msg):
-        # See pose_our_duckie_cb for comments on structure
-        time = int_ts_msg.time
-        if time not in self.received_messages:
-            self.received_messages[time] = {}
-        self.received_messages[time]['safety_status'] = int_ts_msg.data
-
-        self.check_and_step(time)
-
-    def duckie_ground_type_cb(self, int_ts_msg):
-        # See pose_our_duckie_cb for comments on structure
-        time = int_ts_msg.time
-        if time not in self.received_messages:
-            self.received_messages[time] = {}
-        self.received_messages[time]['ground_type'] = int_ts_msg.data
-        self.check_and_step(time)
-
-    def check_and_step(self, time):
-        # Check if all the messages have been received in received_message for a particular time
-        received_all = 'pose_our_duckie' in self.received_messages[time] and 'pose_other_duckie' in self.received_messages[time] and 'safety_status' in self.received_messages[time] and 'ground_type' in self.received_messages[time]
-        if received_all: # If yes, send them to the manager and pop it out of received_messages
-            self.manager.step(time, self.received_messages.pop(time))
-
+    def manager_records_cb_srv(self, req_msg):
+        # Response is all the records from the manager
+        time, rewards, score, path_our_duckie, path_other_duckie, safety_statuses, ground_types = self.manager.get_records()
+        response = ManagerRecordsResponse()
+        response.safety_statuses = safety_statuses
+        response.ground_types = ground_types
+        response.time = time
+        response.rewards = rewards
+        response.score =  score
+        response.path_our_duckie = path_our_duckie
+        response.path_other_duckie = path_other_duckie
+        return response
 
     def onShutdown(self):
         rospy.loginfo("[ManagerNode] Shutdown.")
-
 
 
 if __name__ == '__main__':

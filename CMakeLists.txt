@@ -11,6 +11,7 @@ find_package(
 	catkin REQUIRED
 	message_generation REQUIRED
 	std_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -51,12 +52,14 @@ add_message_files(
    FILES
    Int32TimeStep.msg
    Pose2DTimeStep.msg
+   WorldState.msg
 )
 
 ## Generate services in the 'srv' folder
  add_service_files(
     FILES
     GroundType.srv
+    ManagerRecords.srv
  )
 
 ## Generate actions in the 'action' folder
@@ -70,6 +73,7 @@ add_message_files(
  generate_messages(
     DEPENDENCIES
     std_msgs  # Or other packages containing msgs
+    geometry_msgs
  )
 
 ################################################

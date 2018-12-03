@@ -1,7 +1,9 @@
 import numpy as np
 import math
 from dt_comm.enums import Ground, SafetyStatus
+from pathplan_uncertainty.msg import Int32TimeStep, Pose2DTimeStep
 import rospy
+#from geometry_msgs import Pose2D
 
 class Manager(object):
 
@@ -14,19 +16,19 @@ class Manager(object):
         self.time = []
         self.rewards_log = []
         self.score_log = []
-        self.my_bot_path = []
+        self.our_bot_path = []
         self.other_bot_path = []
         self.safety_statuses = []
         self.ground_types = []
 
-    def step(self, time, state):
-        self.time.append(time)
-        self.rewards_log.append(self.calc_reward(state["safety_status"], state["ground_type"]))
+    def step(self, state_msg):
+        self.time.append(state_msg.time)
+        self.rewards_log.append(self.calc_reward(state_msg.safety_status, state_msg.ground_type))
         self.score_log.append(sum(self.rewards_log))
-        self.my_bot_path.append(state["pose_our_duckie"])
-        self.other_bot_path.append(state["pose_other_duckie"])
-        self.safety_statuses.append(state["safety_status"])
-        self.ground_types.append(state["ground_type"])
+        self.our_bot_path.append(state_msg.our_duckie_pose)
+        self.other_bot_path.append(state_msg.other_duckie_pose)
+        self.safety_statuses.append(state_msg.safety_status)
+        self.ground_types.append(state_msg.ground_type)
 
 
     def calc_reward(self, safety_status, ground_type):
@@ -46,4 +48,4 @@ class Manager(object):
         return reward
 
     def get_records(self):
-        return self.t, self.timesteps, self.rewards_log, self.score_log, self.my_bot_path, self.other_bot_path, self.safety_statuses, self.ground_types
+        return self.time, self.rewards_log, self.score_log, self.our_bot_path, self.other_bot_path, self.safety_statuses, self.ground_types

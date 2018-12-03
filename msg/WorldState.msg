@@ -1,0 +1,7 @@
+float32 time
+float32 reward
+float32 score
+pathplan_uncertainty/Pose2DTimeStep our_duckie_pose
+pathplan_uncertainty/Pose2DTimeStep other_duckie_pose
+int32 safety_status
+int32 ground_type

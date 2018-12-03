@@ -5,7 +5,7 @@ import rospy
 from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import Int32
 from geometry_msgs.msg import Pose2D
-from pathplan_uncertainty.msg import Int32TimeStep, Pose2DTimeStep
+from pathplan_uncertainty.msg import Int32TimeStep, Pose2DTimeStep, WorldState
 from pathplan_uncertainty.srv import GroundType
 from dt_simulator.world import World, DroveOffTheFreakinRoad, RammedAFreakinDuckiebot 
 
@@ -45,6 +45,7 @@ class SimNode(object):
         self.pub_pose_other_duckie = rospy.Publisher("/sim/gt/pose_other_duckie",Pose2DTimeStep, queue_size=1)
         self.pub_safety_status = rospy.Publisher("/sim/gt/our_duckie_safety_status",Int32TimeStep, queue_size=1)
         self.pub_our_duckie_ground_type = rospy.Publisher("/sim/gt/our_duckie_ground_type",Int32TimeStep, queue_size=1)
+        self.pub_world_state = rospy.Publisher("sim/gt/world_state", WorldState, queue_size=1)
 
         self.pub_pose_our_duckie_obs = rospy.Publisher("/sim/obs/pose_our_duckie",Pose2DTimeStep, queue_size=1)
         self.pub_pose_other_duckie_obs = rospy.Publisher("/sim/obs/pose_other_duckie",Pose2DTimeStep, queue_size=1)
@@ -104,7 +105,7 @@ class SimNode(object):
         # Publishing the state
         time, ourd_p, ourd_ss, ourd_gt, othd_p = self.world.get_state()
 
-        # Publish our duckie pose
+         # Publish our duckie pose
         ourd_p_msg = Pose2DTimeStep()
         ourd_p_msg.time = time
         ourd_p_msg.x = ourd_p[0]
@@ -131,6 +132,16 @@ class SimNode(object):
         othd_p_msg.y = othd_p[1]
         othd_p_msg.theta = othd_p[2]
         self.pub_pose_other_duckie.publish(othd_p_msg)
+
+        # Publish all together
+        world_state_msg = WorldState()
+        world_state_msg.time = time
+        world_state_msg.our_duckie_pose = ourd_p_msg
+        world_state_msg.other_duckie_pose = othd_p_msg
+        world_state_msg.safety_status = ourd_ss.value
+        world_state_msg.ground_type = ourd_gt.value
+        self.pub_world_state.publish(world_state_msg)
+
 
     def propagate_action(self):
         # Propagate action in world

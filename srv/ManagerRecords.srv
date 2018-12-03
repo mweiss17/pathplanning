@@ -1,0 +1,8 @@
+---
+float32[] time
+float32[] rewards
+float32[] score
+pathplan_uncertainty/Pose2DTimeStep[] path_our_duckie
+pathplan_uncertainty/Pose2DTimeStep[] path_other_duckie
+int32[] safety_statuses
+int32[] ground_types
