@@ -31,27 +31,32 @@ class ManagerNode(object):
         self.sub_safety_status = rospy.Subscriber("/sim/gt/our_duckie_safety_status",Int32TimeStep, self.safety_status_cb)
         self.ground_type = rospy.Subscriber("/sim/gt/our_duckie_ground_type", Int32TimeStep, self.duckie_ground_type_cb)
 
-        rospy.loginfo("[ManagerNode] Initialized.")
+        
 
         # Received messages by time
-        
         self.received_messages = {}
 
+
+        rospy.loginfo("[ManagerNode] Initialized.")
+
+
     def pose_our_duckie_cb(self, pose_ts_msg):
-        rospy.loginfo("[ManagerNode] Received pose_our_duckie!")
+        # Data out of message
         time = pose_ts_msg.time
         x = pose_ts_msg.x
         y = pose_ts_msg.y
         theta = pose_ts_msg.theta
-
-        if time not in self.received_messages:
+        # Check if received_messages dict already has this time as an entry
+        if time not in self.received_messages: # if not, create it
             self.received_messages[time] = {}
+        # Add our duckie pose to received_messages
         self.received_messages[time]['pose_our_duckie'] = (x, y, theta)
 
+        # Check if all other messages have been received; if yes, send to manager
         self.check_and_step(time)
 
     def pose_other_duckie_cb(self, pose_ts_msg):
-        rospy.loginfo("[ManagerNode] Received pose_other_duckie!")
+        # See pose_our_duckie_cb for comments on structure
         time = pose_ts_msg.time
         x = pose_ts_msg.x
         y = pose_ts_msg.y
@@ -63,7 +68,7 @@ class ManagerNode(object):
         self.check_and_step(time)
 
     def safety_status_cb(self, int_ts_msg):
-        rospy.loginfo("[ManagerNode] Received safety_status!")
+        # See pose_our_duckie_cb for comments on structure
         time = int_ts_msg.time
         if time not in self.received_messages:
             self.received_messages[time] = {}
@@ -72,7 +77,7 @@ class ManagerNode(object):
         self.check_and_step(time)
 
     def duckie_ground_type_cb(self, int_ts_msg):
-        rospy.loginfo("[ManagerNode] Received ground_type!")
+        # See pose_our_duckie_cb for comments on structure
         time = int_ts_msg.time
         if time not in self.received_messages:
             self.received_messages[time] = {}
@@ -80,11 +85,10 @@ class ManagerNode(object):
         self.check_and_step(time)
 
     def check_and_step(self, time):
+        # Check if all the messages have been received in received_message for a particular time
         received_all = 'pose_our_duckie' in self.received_messages[time] and 'pose_other_duckie' in self.received_messages[time] and 'safety_status' in self.received_messages[time] and 'ground_type' in self.received_messages[time]
-        if received_all:
-            rospy.loginfo("[ManagerNode] Received all at time: " + str(time))
+        if received_all: # If yes, send them to the manager and pop it out of received_messages
             self.manager.step(time, self.received_messages.pop(time))
-
 
 
     def onShutdown(self):

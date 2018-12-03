@@ -16,10 +16,12 @@ class SimNode(object):
         # Parameters
         self.dt = rospy.get_param("/sim/dt")
 
+        ## World parameters
         self.road_width = rospy.get_param("/sim/world/road/width")
 
         self.world_params = {"road_width": self.road_width}
 
+        ## Our duckie parameters
         self.our_duckie_start_pose = rospy.get_param("/sim/our_duckie/start_pose")
         self.our_duckie_velocity = rospy.get_param("/sim/our_duckie/velocity")
         self.our_duckie_radius = rospy.get_param("/sim/our_duckie/radius")
@@ -27,14 +29,13 @@ class SimNode(object):
 
         self.our_duckie_params = {"start_pose": self.our_duckie_start_pose, "velocity": self.our_duckie_velocity, "radius": self.our_duckie_radius, "type": self.our_duckie_type}
 
-
+        ## Other duckie parameters
         self.other_duckie_start_pose = rospy.get_param("/sim/other_duckie/start_pose")
         self.other_duckie_velocity = rospy.get_param("/sim/other_duckie/velocity")
         self.other_duckie_radius = rospy.get_param("/sim/other_duckie/radius")
         self.other_duckie_type = rospy.get_param("/sim/other_duckie/type")
 
         self.other_duckie_params = {"start_pose": self.other_duckie_start_pose, "velocity": self.other_duckie_velocity, "radius": self.other_duckie_radius, "type": self.other_duckie_type}
-
       
         # World
         self.world = World(self.dt, self.our_duckie_params, self.other_duckie_params, self.world_params)
@@ -66,7 +67,6 @@ class SimNode(object):
 
 
     def orientation_seq_cb(self, ori_seq_msg):
-        rospy.loginfo("[SimNode] Received orientation sequence.")
         self.orientation_seq = ori_seq_msg.data
         self.received_ori_seq = True
         if self.received_comp_time:
@@ -74,7 +74,6 @@ class SimNode(object):
             self.propagate_action()
 
     def computation_time_cb(self, int_msg):
-        rospy.loginfo("[SimNode] Received computation time.")
         self.computation_time_steps = int_msg.data
         self.received_comp_time = True
         if self.received_ori_seq:
@@ -82,8 +81,6 @@ class SimNode(object):
             self.propagate_action()
 
     def publish_obs(self):
-        rospy.loginfo("[SimNode] Publishing observations.")
-
         # Publishing the observations
         time, ourd_p, _, _, othd_p = self.world.get_state()
 
@@ -104,8 +101,6 @@ class SimNode(object):
         self.pub_pose_our_duckie_obs.publish(othd_p_msg)
 
     def publish_state(self):
-        rospy.loginfo("[SimNode] Publishing state.")
-
         # Publishing the state
         time, ourd_p, ourd_ss, ourd_gt, othd_p = self.world.get_state()
 
@@ -138,30 +133,24 @@ class SimNode(object):
         self.pub_pose_other_duckie.publish(othd_p_msg)
 
     def propagate_action(self):
-        rospy.loginfo("[SimNode] Propagation actions: ")
-
         # Propagate action in world
         self.world.update_our_duckie_plan(self.orientation_seq)
 
         for k in range(self.computation_time_steps):
-            rospy.loginfo("[SimNode] k = " + str(k + 1))
             self.world.step()
             self.publish_state()
 
-
         # Reset temp. variables
-        rospy.loginfo("[SimNode] Reset of temp. variables.")
-
         self.orientation_seq = []
         self.received_ori_seq = False
         self.received_comp_time = False
         pass
 
     def ground_type_srv_cb(self, req_msg):
+        # Returns the ground type for a given pose and radius (see dt_comm/enums for ground_types)
         pose = (req_msg.x.data, req_msg.y.data, req_msg.theta.data)
         radius = req_msg.bot_radius.data
         response = Int32()
-        rospy.loginfo("[SimNode] ground type: " + str(self.world.check_ground(pose, radius).value))
         response.data = self.world.check_ground(pose, radius).value
         return response
 
