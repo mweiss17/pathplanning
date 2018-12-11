@@ -1,6 +1,7 @@
 import logging
 import rospy
 from bot import MyBot, SlowBot
+from visualizer import Visualizer
 from dt_comm.enums import Ground, SafetyStatus
 
 class RammedAFreakinDuckiebot(Exception):
@@ -27,6 +28,9 @@ class World(object):
             self.other_bot = SlowBot(other_duckie_params, self.dt)
         else:
             rospy.logerr("[sim_node][world] Unknown other duckie type. Look in pathplan_uncertainty/config/sim.yaml and make sure it is fine!")
+
+        # Instantiating visualizer
+        self.visualizer = Visualizer(world_params, our_duckie_params, other_duckie_params)
         
         self.my_bot_safety_status = self.check_safety(self.my_bot, self.other_bot)
         self.my_bot_ground_type = self.check_ground(self.my_bot.pos(), self.my_bot.radius)
