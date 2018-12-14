@@ -50,12 +50,14 @@ class Visualizer(object):
         theta = pose[2]
         u_bot = int(x*self.m2pix + center_u)
         v_bot = int(center_y - y*self.m2pix)
+        print("u, v: " + str(u_bot) + ", " + str(v_bot))
         
         # Fill circle around this position with given radius
-        for u in range(u_bot-radius_pix, u_bot+radius_pix):
+        for u in range(u_bot-radius_pix, u_bot+radius_pix):     # For pixels the square around the bot
             for v in range(v_bot-radius_pix, v_bot+radius_pix):
-                if ((u-u_bot)*(u-u_bot) + (v-v_bot)*(v-v_bot)) < radius_pix*radius_pix:
-                    image[v, u] = color_code
+                if ((u-u_bot)*(u-u_bot) + (v-v_bot)*(v-v_bot)) < radius_pix*radius_pix: # Check if in a circle shape
+                    if v < self.image_height and v >= 0 and u < self.image_width and u >= 0:   # Check that it is in the image dimensions
+                        image[v, u] = color_code
 
         return image
 
