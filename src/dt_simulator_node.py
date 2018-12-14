@@ -172,10 +172,8 @@ class SimNode(object):
     def propagate_action(self):
         # Propagate action in world
         self.world.update_our_duckie_plan(self.orientation_seq)
-        rospy.loginfo("Propagating action!")
 
         for k in range(self.computation_time_steps):
-            rospy.loginfo("   k: " + str(k))
             rospy.sleep(self.dt_in_sim)
             self.world.step()
             self.publish_state()

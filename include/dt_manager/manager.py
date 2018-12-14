@@ -33,19 +33,24 @@ class Manager(object):
 
     def calc_reward(self, safety_status, ground_type):
         reward = 0
-        if safety_status == SafetyStatus.FINE:
+
+        if safety_status == SafetyStatus.FINE.value:
             reward += self.rewards["fine"]
-        if safety_status == SafetyStatus.COLLISION:
+        if safety_status == SafetyStatus.COLLISION.value:
             reward += self.rewards["collision"]
-        if ground_type == Ground.LOST:
+        if ground_type == Ground.LOST.value:
             reward += self.rewards["lost"]
-        if ground_type == Ground.RIGHT_LANE:
+        if ground_type == Ground.RIGHT_LANE.value:
             reward += self.rewards["right_lane"]
-        if ground_type == Ground.WRONG_LANE:
+        if ground_type == Ground.WRONG_LANE.value:
             reward += self.rewards["wrong_lane"]
-        if ground_type == Ground.PARTIALLY_OUT_OF_ROAD:
+        if ground_type == Ground.PARTIALLY_OUT_OF_ROAD.value:
             reward +- self.rewards["part_out"]
+
         return reward
 
     def get_records(self):
         return self.time, self.rewards_log, self.score_log, self.our_bot_path, self.other_bot_path, self.safety_statuses, self.ground_types
+
+    def get_current_score(self):
+        return self.score_log[-1]

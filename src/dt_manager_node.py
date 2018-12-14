@@ -27,6 +27,9 @@ class ManagerNode(object):
 
         # Subscriber
         self.sub_pose_our_duckie = rospy.Subscriber("/sim/gt/world_state",WorldState, self.world_state_cb)
+
+        # Publisher
+        self.pub_score = rospy.Publisher("/manager/current_score", Int32, queue_size=1)
         
         # Service
         self.get_records_serv = rospy.Service('/manager/get_manager_records',ManagerRecords, self.manager_records_cb_srv)
@@ -36,6 +39,9 @@ class ManagerNode(object):
 
     def world_state_cb(self, world_step_msg):
         self.manager.step(world_step_msg)
+        score_msg = Int32()
+        score_msg.data = self.manager.get_current_score()
+        self.pub_score.publish(score_msg)
 
 
     def manager_records_cb_srv(self, req_msg):
