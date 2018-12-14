@@ -4,17 +4,33 @@ import rospy
 
 from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import Int32
+from sensor_msgs.msg import Image
 from geometry_msgs.msg import Pose2D
 from pathplan_uncertainty.msg import Int32TimeStep, Pose2DTimeStep, WorldState
 from pathplan_uncertainty.srv import GroundType
 from dt_simulator.world import World, DroveOffTheFreakinRoad, RammedAFreakinDuckiebot 
+from dt_simulator.visualizer import Visualizer
+from cv_bridge import CvBridge, CvBridgeError
 
 
 class SimNode(object):
 
     def __init__(self):        
-        # Parameters
+        # Utils
+        self.bridge = CvBridge()
+
+        # Simulation parameters
         self.dt = rospy.get_param("/sim/dt")
+        self.dt_in_sim = rospy.get_param("/sim/dt_in_sim")
+        self.sim_parameters = {"dt": self.dt, "dt_in_sim": self.dt_in_sim}
+
+        self.output_image = rospy.get_param("/sim/image/output_image")
+        self.image_height = rospy.get_param("/sim/image/height")
+        self.image_width = rospy.get_param("/sim/image/width")
+        self.image_m2pix = rospy.get_param("/sim/image/m2pix")
+        self.image_y_baseline = rospy.get_param("/sim/image/y_baseline")
+
+        self.image_params = {"output_image": self.output_image, "height": self.image_height, "width": self.image_width, "m2pix": self.image_m2pix, "y_baseline": self.image_y_baseline}
 
         ## World parameters
         self.road_width = rospy.get_param("/sim/world/road/width")
@@ -38,7 +54,9 @@ class SimNode(object):
         self.other_duckie_params = {"start_pose": self.other_duckie_start_pose, "velocity": self.other_duckie_velocity, "radius": self.other_duckie_radius, "type": self.other_duckie_type}
       
         # World
-        self.world = World(self.dt, self.our_duckie_params, self.other_duckie_params, self.world_params)
+        self.world = World(self.sim_parameters, self.world_params, self.our_duckie_params, self.other_duckie_params)
+        # Visualizer
+        self.visualizer = Visualizer(self.image_params, self.world_params, self.our_duckie_params, self.other_duckie_params)
 
         # Publishers
         self.pub_pose_our_duckie = rospy.Publisher("/sim/gt/pose_our_duckie",Pose2DTimeStep, queue_size=1)
@@ -49,6 +67,8 @@ class SimNode(object):
 
         self.pub_pose_our_duckie_obs = rospy.Publisher("/sim/obs/pose_our_duckie",Pose2DTimeStep, queue_size=1)
         self.pub_pose_other_duckie_obs = rospy.Publisher("/sim/obs/pose_other_duckie",Pose2DTimeStep, queue_size=1)
+
+        self.pub_image = rospy.Publisher("/sim/road_image", Image, queue_size=1)
         
         # Subscribers
         self.sub_agent_orientation_seq = rospy.Subscriber("/agent/orientation_seq",Float32MultiArray, self.orientation_seq_cb)
@@ -142,14 +162,24 @@ class SimNode(object):
         world_state_msg.ground_type = ourd_gt.value
         self.pub_world_state.publish(world_state_msg)
 
+        # Publish image
+        if self.output_image:
+            image = self.visualizer.create_image_state(ourd_p, othd_p)
+            image_msg_out = self.bridge.cv2_to_imgmsg(image, "bgr8")
+            self.pub_image.publish(image_msg_out)
+
 
     def propagate_action(self):
         # Propagate action in world
         self.world.update_our_duckie_plan(self.orientation_seq)
+        rospy.loginfo("Propagating action!")
 
         for k in range(self.computation_time_steps):
+            rospy.loginfo("   k: " + str(k))
+            rospy.sleep(self.dt_in_sim)
             self.world.step()
             self.publish_state()
+
 
         # Reset temp. variables
         self.orientation_seq = []

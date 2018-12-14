@@ -11,13 +11,9 @@ class DroveOffTheFreakinRoad(Exception):
     pass
 
 class World(object):
-    lane_width = 10
-    num_lanes = 2
-    world_dim = (100, 100)
-    speed_of_light = 1
 
-    def __init__(self, dt, our_duckie_params, other_duckie_params, world_params):
-        self.dt = dt
+    def __init__(self, sim_params, world_params, our_duckie_params, other_duckie_params):
+        self.dt = sim_params["dt"]
         self.time = 0
         self.road_width = world_params["road_width"]
         # Creating our duckie
@@ -28,9 +24,6 @@ class World(object):
             self.other_bot = SlowBot(other_duckie_params, self.dt)
         else:
             rospy.logerr("[sim_node][world] Unknown other duckie type. Look in pathplan_uncertainty/config/sim.yaml and make sure it is fine!")
-
-        # Instantiating visualizer
-        self.visualizer = Visualizer(world_params, our_duckie_params, other_duckie_params)
         
         self.my_bot_safety_status = self.check_safety(self.my_bot, self.other_bot)
         self.my_bot_ground_type = self.check_ground(self.my_bot.pos(), self.my_bot.radius)
