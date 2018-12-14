@@ -47,7 +47,7 @@ class World(object):
         x1, y1, _ = my_bot.pos()
         x2, y2, _ = other_bot.pos()
         # Checking if collision (assuming same circular shape for both bots)
-        if abs(x1 - x2) < 2 * my_bot.radius and abs(y1 - y2) < 2 * my_bot.radius:
+        if (x1-x2)**2 + (y1-y2)**2 < (my_bot.radius + other_bot.radius)**2:
             rospy.loginfo("COLLISION!!!!")
             return SafetyStatus.COLLISION
         return SafetyStatus.FINE
