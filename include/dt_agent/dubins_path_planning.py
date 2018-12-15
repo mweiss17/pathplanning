@@ -258,7 +258,7 @@ def generate_course(length, mode, c):
 
 
 def plot_arrow(x, y, yaw, length=1.0, width=0.5, fc="r", ec="k"):
-    u"""
+    """
     Plot arrow
     """
 

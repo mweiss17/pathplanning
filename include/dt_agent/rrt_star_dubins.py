@@ -15,8 +15,10 @@ show_animation = True
 
 class RRT():
 
-    def __init__(self, start, goal, obstacleList, randAreax, randAreay,
+    def __init__(self, start, goal, obstacleList, randAreax, randAreay, gridsizex, gridsizey, radius,
                  goalSampleRate=10, maxIter=60):
+
+
         """
         Setting Parameter
 
@@ -28,15 +30,22 @@ class RRT():
         """
         self.start = Node(start[0], start[1], start[2])
         self.end = Node(goal[0], goal[1], goal[2])
+
         self.minrandx = randAreax[0]
         self.maxrandx = randAreax[1]
         self.minrandy = randAreay[0]
         self.maxrandy = randAreay[1]
+
+        self.gridsizex = gridsizex
+        self.gridsizey = gridsizey
+
+        self.robotradius = radius
+
         self.goalSampleRate = goalSampleRate
         self.maxIter = maxIter
         self.obstacleList = obstacleList
 
-    def setValues(self, start, goal, obstacleList, randArea,
+    def setValues(self, start, goal, obstacleList, randAreax, randAreay, gridsizex, gridsizey, radius,
                  goalSampleRate=10, maxIter=50):
         """
         Setting Parameter
@@ -49,10 +58,17 @@ class RRT():
         """
         self.start = Node(start[0], start[1], start[2])
         self.end = Node(goal[0], goal[1], goal[2])
+
         self.minrandx = randAreax[0]
         self.maxrandx = randAreax[1]
         self.minrandy = randAreay[0]
         self.maxrandy = randAreay[1]
+
+        self.gridsizex = gridsizex
+        self.gridsizey = gridsizey
+
+        self.robotradius = radius
+
         self.goalSampleRate = goalSampleRate
         self.maxIter = maxIter
         self.obstacleList = obstacleList
@@ -88,7 +104,7 @@ class RRT():
         path = self.gen_final_course(lastIndex)
         return path
 
-    def choose_parent(self, newNode, nearinds):
+    def choose_parent(self, newNode, nearinds):                             ##using cost to decide parent
         if len(nearinds) == 0:
             return newNode
 
@@ -114,7 +130,7 @@ class RRT():
     def pi_2_pi(self, angle):
         return (angle + math.pi) % (2 * math.pi) - math.pi
 
-    def steer(self, rnd, nind):
+    def steer(self, rnd, nind):                                             ##comuting cost based on path length 
         #  print(rnd)
         curvature = 1.0
 
@@ -150,7 +166,7 @@ class RRT():
 
         return node
 
-    def get_best_last_index(self):
+    def get_best_last_index(self):                                                          ##using cost to get best node
         #  print("get_best_last_index")
 
         YAWTH = np.deg2rad(1.0)
@@ -202,7 +218,7 @@ class RRT():
         nearinds = [dlist.index(i) for i in dlist if i <= r ** 2]
         return nearinds
 
-    def rewire(self, newNode, nearinds):
+    def rewire(self, newNode, nearinds):                                            #using cost to compare and rewire
 
         nnode = len(self.nodeList)
 
@@ -266,7 +282,7 @@ class RRT():
         return True  # safe
 
 
-class Node():
+class Node():                                                                   ##initing cost to zero (can init instead to cost for inital metrics acc to node position)
 
     def __init__(self, x, y, yaw):
         self.x = x
@@ -278,7 +294,17 @@ class Node():
         self.cost = 0.0
         self.parent = None
 
+    def get_cost_lane_dev():
+        pass
 
+
+#center of lane
+#on road (radius of car)
+#no collisions
+#shortest distance
+
+
+##add radius to collision checks
 
 
 
