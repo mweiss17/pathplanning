@@ -148,15 +148,16 @@ class RRT():
         newNode.y = py[-1]
         newNode.yaw = pyaw[-1]
 
-        newNode.path_x = px
+        newNode.path_x = px         ## this is a list of points (x coordinates) that is basically the path to this node, dist btw points is kept constant
         newNode.path_y = py
         newNode.path_yaw = pyaw
-        newNode.cost += clen
+        newNode.cost += clen        #cost is being computed by adding length of path between new node + selected parent to the cost of selected parent
         newNode.parent = nind
 
+        #should be adding time keeping here, time represnting the time step so that can compare with time step of rolled out obstacle prediction
         return newNode
 
-    def get_random_point(self):
+    def get_random_point(self):                                 #we should be restricting the grid where it looks for a random point?
 
         if random.randint(0, 100) > self.goalSampleRate:
             rnd = [random.uniform(self.minrandx, self.maxrandx),
@@ -171,6 +172,7 @@ class RRT():
         return node
 
     def get_best_last_index(self):                                                          ##this func is using cost to get best node that leads to the goal
+                                                                                            ##gets called at the end, so that we can backtrack to find best path
         #  print("get_best_last_index")
 
         YAWTH = np.deg2rad(1.0)
@@ -265,7 +267,7 @@ class RRT():
         #  plt.show()
         #  input()
 
-    def GetNearestListIndex(self, nodeList, rnd):
+    def GetNearestListIndex(self, nodeList, rnd):               ##looks for nearest node so that that can be its parent
         dlist = [(node.x - rnd.x) ** 2 +
                  (node.y - rnd.y) ** 2 +
                  (node.yaw - rnd.yaw) ** 2 for node in nodeList]
