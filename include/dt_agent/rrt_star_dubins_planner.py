@@ -18,14 +18,18 @@ class RRT():
     def __init__(self, start, goal, obstacleList, randAreax, randAreay, gridsizex, gridsizey, radius,
                  goalSampleRate=10, maxIter=60):
 
+        #since we haven't et decided how to decide "cost/reward" of every node/sampled point, i've added comment indicating which functions might be depending on this 
+        #cost value to do decision making inside rrt
 
         """
         Setting Parameter
 
         start:Start Position [x,y]
         goal:Goal Position [x,y]
-        obstacleList:obstacle Positions [[x,y,size],...]
+        obstacleList:obstacle Positions [[x,y,size],...] 
         randArea:Ramdom Samping Area [min,max]
+        GridSize: currently not used anywhere, should hold total traversable area/road dimesions value
+        goalSampleRate : out of 100 samples, x times will sample to goal to see if direct path possible
 
         """
         self.start = Node(start[0], start[1], start[2])
@@ -104,7 +108,7 @@ class RRT():
         path = self.gen_final_course(lastIndex)
         return path
 
-    def choose_parent(self, newNode, nearinds):                             ##using cost to decide parent
+    def choose_parent(self, newNode, nearinds):                             ##this function is using cost value stored in node to decide its parent
         if len(nearinds) == 0:
             return newNode
 
@@ -130,7 +134,7 @@ class RRT():
     def pi_2_pi(self, angle):
         return (angle + math.pi) % (2 * math.pi) - math.pi
 
-    def steer(self, rnd, nind):                                             ##comuting cost based on path length 
+    def steer(self, rnd, nind):                                             ##this func is computing cost of a node based on path length from another anchor node
         #  print(rnd)
         curvature = 1.0
 
@@ -166,7 +170,7 @@ class RRT():
 
         return node
 
-    def get_best_last_index(self):                                                          ##using cost to get best node
+    def get_best_last_index(self):                                                          ##this func is using cost to get best node that leads to the goal
         #  print("get_best_last_index")
 
         YAWTH = np.deg2rad(1.0)
@@ -218,7 +222,7 @@ class RRT():
         nearinds = [dlist.index(i) for i in dlist if i <= r ** 2]
         return nearinds
 
-    def rewire(self, newNode, nearinds):                                            #using cost to compare and rewire
+    def rewire(self, newNode, nearinds):                                            #this func is using cost to compare nodes and rewire the rrt* tree
 
         nnode = len(self.nodeList)
 
@@ -234,7 +238,7 @@ class RRT():
                 self.nodeList[i] = tNode
 
     def DrawGraph(self, rnd=None):
-        u"""
+        """
         Draw Graph
         """
         plt.clf()
@@ -269,20 +273,20 @@ class RRT():
 
         return minind
 
-    def CollisionCheck(self, node, obstacleList):                                   #extend later
-
-        for (ox, oy, size) in obstacleList:
-            for (ix, iy) in zip(node.path_x, node.path_y):
-                dx = ox - ix
-                dy = oy - iy
-                d = dx * dx + dy * dy
-                if d <= size ** 2:
-                    return False  # collision
+    def CollisionCheck(self, node, obstacleList):                    #extend later, currently penalizing being close to ANY of the rolled out positions in time of any of the obstacles
+        for obstacle_pos in obstacleList:
+            for (ox, oy, size) in obstacle_pos:
+                for (ix, iy) in zip(node.path_x, node.path_y):
+                    dx = ox - ix
+                    dy = oy - iy
+                    d = dx * dx + dy * dy
+                    if d <= size ** 2:
+                        return False  # collision
 
         return True  # safe
 
 
-class Node():                                                                   ##initing cost to zero (can init instead to cost for inital metrics acc to node position)
+class Node():                                        ##initing cost to zero (can init instead to some cost based on initial position relative to goal/road)
 
     def __init__(self, x, y, yaw):
         self.x = x
@@ -298,12 +302,13 @@ class Node():                                                                   
         pass
 
 
-#center of lane
-#on road (radius of car)
-#no collisions
-#shortest distance
+#COST to be used CAN BE BASED ON:
+#position wrt center of lane
+#on road or not(dependent on radius of car)
+#ensuring no collisions based on robot's own motionmodel of other bodies
+#shortest distance to goal
 
-
+#TODO
 ##add radius to collision checks
 
 

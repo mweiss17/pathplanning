@@ -15,20 +15,25 @@ class RRT_Dubins(Planner):
 		self.start =  [0.0, 0.0, np.deg2rad(0.0)]
 		self.goal =  [0.0, 12.0, np.deg2rad(0.0)]
 		self.time_steps = 20
-		#self.obstacle_model = driving_towards_us() 						##args
+		self.obstacle_model = driving_towards_us(dt, velx, vely) 						##define these here or in caller (assumng constant velocity)
 
 		self.gridsizex = gridsizex
 		self.gridsizey = gridsizey
 
-    	self.static_obstacleList = []  # [x,y,size(radius)]			##for now, populated when other_duckie obs is receied
+    	self.static_obstacleList = []  # [x,y,size(radius)]						##for now is empty initially, and is populated when other_duckie obs is received
 							    		
 	    self.rrt = RRT(self.start, self.goal, randAreax=[-gridsizex/2.0, gridsizex/2.0], randAreay=[0.0, gridsizey], obstacleList = self.static_obstacleList)
 	   
 
-	def update_plan(other_duckie_obs, radii): 							#for now only xy is important in obstacle list, will factor in theta later
-		self.static_obstacleList = []
+
+	def update_plan(other_duckie_obs, radii): 									#for now only xy is important in obstacle list, will factor in theta later
+		
+		self.static_obstacleList = []											##might not want to clear every time  (ex if other bot hasn't moved)
 		for obs, radius in zip(other_duckie_obs,radii):
-			self.static_obstacleList.append(obs.x, obs.y, radius)  
+
+			rolledout_pos = self.obstacle_model.rollout_model(obs, radius, time_steps = self.time_steps) #should be transformed coordinates 
+			self.static_obstacleList.append(rolledout_pos)  					#rolledout_pos is a list of list of [x,y,radius] for each 'other' duckie
+
 		self.rrt.setValues(self.start, self.goal,randAreax=[-gridsizex/2.0, gridsizex/2.0], randAreay=[0.0, gridsizey], obstacleList = self.static_obstacleList)  #optional, nothing really changes
 		path = self.rrt.Planning()
 		final_path = postprocess_plan(path)
@@ -45,11 +50,12 @@ class RRT_Dubins(Planner):
 			angles.append(math.atan2(xy_points[point_itr+1][1]-xy_points[point_itr][1], xy_points[point_itr+1][0]-xy_points[point_itr][0]))
 		return angles
 
-	def generate_goal_for_rrt():										##later, for now coded to 12 distance units ahead in center of lane
+	def generate_goal_for_rrt():										## later, for now coded to '12' units distance units ahead in center of lane
+																		## should be checking for whether theres an obstacle at that point or not?
 		pass
 
 def DrawGraph(self, rnd=None):
-    u"""
+    """
     Draw Graph
     """
     plt.clf()
