@@ -58,6 +58,9 @@ class Visualizer(object):
                 if ((u-u_bot)*(u-u_bot) + (v-v_bot)*(v-v_bot)) < radius_pix*radius_pix: # Check if in a circle shape
                     if v < self.image_height and v >= 0 and u < self.image_width and u >= 0:   # Check that it is in the image dimensions
                         image[v, u] = color_code
+                        if abs((u-u_bot) - math.tan(theta)*(v_bot-v)) <= 1 and (v_bot-v)*math.cos(theta+0.01) >= 0: # Check if point is on orientation line and in the right direction
+                            image[v, u] = (0, 0, 0)                                     # Put in black
+
 
         return image
 
