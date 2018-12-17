@@ -1,6 +1,6 @@
 import logging
 import rospy
-from bot import MyBot, SlowBot
+from bot import MyBot, ConstantSpeedBot, UnstableSpeedBot
 from visualizer import Visualizer
 from dt_comm.enums import Ground, SafetyStatus
 
@@ -20,8 +20,10 @@ class World(object):
         self.my_bot = MyBot(our_duckie_params, self.dt)
         
         # Creating other duckie
-        if other_duckie_params["type"] == "slow_duckie":
-            self.other_bot = SlowBot(other_duckie_params, self.dt)
+        if other_duckie_params["type"] == "constant_speed_duckie":
+            self.other_bot = ConstantSpeedBot(other_duckie_params, self.dt)
+        elif other_duckie_params["type"] == "unstable_speed_duckie":
+            self.other_bot = UnstableSpeedBot(other_duckie_params, self.dt)
         else:
             rospy.logerr("[sim_node][world] Unknown other duckie type. Look in pathplan_uncertainty/config/sim.yaml and make sure it is fine!")
         

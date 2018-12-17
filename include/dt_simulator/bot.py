@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import random
 import rospy
 from collections import deque
 
@@ -14,7 +15,9 @@ class Bot(object):
         self.radius = duckie_params["radius"]
         self.type = duckie_params["type"]
         self.angle_change_limit = duckie_params["angle_change_limit"]
-
+        self.velocity = duckie_params["velocity"]
+        if "max_acceleration" in duckie_params:
+            self.max_acceleration = duckie_params["max_acceleration"]
 
     def pos(self):
         return (self.x, self.y, self.theta)
@@ -42,15 +45,22 @@ class MyBot(Bot):
     def sample_plan(self):
         if len(self.plan) != 0:
             angle = self.plan.popleft()
-            self.drive(angle, 1.0)
-            rospy.loginfo("sample MyBot")
+            self.drive(angle, self.velocity)
 
         else:
             self.drive(0, 0)
 
-class SlowBot(Bot):
-
+class ConstantSpeedBot(Bot):
     def sample_plan(self):
-        self.drive(0, .25)
-        rospy.loginfo("sample Slowbot")
+        self.drive(self.theta, self.velocity)
+
+class UnstableSpeedBot(Bot):
+    def sample_plan(self):
+        random_acceleration = (random.random() - 0.5) * self.max_acceleration #between -0.5 and 0.5
+        self.velocity += random_acceleration * self.dt
+        if self.velocity < 0:
+            self.velocity = 0
+        elif self.velocity > 1:
+            self.velocity = 1
+        self.drive(self.theta, self.velocity)
 

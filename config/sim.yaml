@@ -11,16 +11,6 @@ sim:
   world:
     road:
       width: 2.0
-  our_duckie:
-    start_pose: [0.0, 0.0, 0] # [x,y, theta]
-    velocity: 1.0
-    radius: 0.25
-    type: "our_duckie"
-    angle_change_limit: 0.2 # rad
-  other_duckie:
-    start_pose: [0.0, 5.0, 0] # [x,y, theta]
-    velocity: 0.25
-    radius: 0.25
-    type: "slow_duckie" # Available: slow_duckie.     To be implemented: unstable_duckie, ...
-    angle_change_limit: 0.5 # rad
+  other_duckie_type: "unstable_speed_duckie" # Available: "constant_speed_duckie", "unstable_speed_duckie"
+
 

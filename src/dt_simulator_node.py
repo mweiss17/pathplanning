@@ -38,22 +38,24 @@ class SimNode(object):
         self.world_params = {"road_width": self.road_width}
 
         ## Our duckie parameters
-        self.our_duckie_start_pose = rospy.get_param("/sim/our_duckie/start_pose")
-        self.our_duckie_velocity = rospy.get_param("/sim/our_duckie/velocity")
-        self.our_duckie_radius = rospy.get_param("/sim/our_duckie/radius")
-        self.our_duckie_type = rospy.get_param("/sim/our_duckie/type")
-        self.our_duckie_angle_change_limit = rospy.get_param("/sim/our_duckie/angle_change_limit")
+        self.our_duckie_start_pose = rospy.get_param("/duckiebots/our_duckie/start_pose")
+        self.our_duckie_velocity = rospy.get_param("/duckiebots/our_duckie/velocity")
+        self.our_duckie_radius = rospy.get_param("/duckiebots/our_duckie/radius")
+        self.our_duckie_type = rospy.get_param("/duckiebots/our_duckie/type")
+        self.our_duckie_angle_change_limit = rospy.get_param("/duckiebots/our_duckie/angle_change_limit")
 
         self.our_duckie_params = {"start_pose": self.our_duckie_start_pose, "velocity": self.our_duckie_velocity, "radius": self.our_duckie_radius, "type": self.our_duckie_type, "angle_change_limit": self.our_duckie_angle_change_limit}
 
         ## Other duckie parameters
-        self.other_duckie_start_pose = rospy.get_param("/sim/other_duckie/start_pose")
-        self.other_duckie_velocity = rospy.get_param("/sim/other_duckie/velocity")
-        self.other_duckie_radius = rospy.get_param("/sim/other_duckie/radius")
-        self.other_duckie_type = rospy.get_param("/sim/other_duckie/type")
-        self.other_duckie_angle_change_limit = rospy.get_param("/sim/other_duckie/angle_change_limit")
+        self.other_duckie_type = rospy.get_param("/sim/other_duckie_type")
 
-        self.other_duckie_params = {"start_pose": self.other_duckie_start_pose, "velocity": self.other_duckie_velocity, "radius": self.other_duckie_radius, "type": self.other_duckie_type, "angle_change_limit": self.other_duckie_angle_change_limit}
+        self.other_duckie_start_pose = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/start_pose")
+        self.other_duckie_velocity = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/velocity")
+        self.other_duckie_radius = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/radius")
+        self.other_duckie_angle_change_limit = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/angle_change_limit")
+        self.other_duckie_max_acceleration = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/max_acceleration")
+
+        self.other_duckie_params = {"start_pose": self.other_duckie_start_pose, "velocity": self.other_duckie_velocity, "radius": self.other_duckie_radius, "type": self.other_duckie_type, "angle_change_limit": self.other_duckie_angle_change_limit, "max_acceleration": self.other_duckie_max_acceleration}
       
         # World
         self.world = World(self.sim_parameters, self.world_params, self.our_duckie_params, self.other_duckie_params)
