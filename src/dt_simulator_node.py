@@ -92,6 +92,7 @@ class SimNode(object):
 
 
     def orientation_seq_cb(self, ori_seq_msg):
+        rospy.loginfo("[Sim] Received orientation sequence. Received comp? " + str(self.received_comp_time))
         self.orientation_seq = ori_seq_msg.data
         self.received_ori_seq = True
         if self.received_comp_time:
@@ -99,6 +100,7 @@ class SimNode(object):
             self.propagate_action()
 
     def computation_time_cb(self, int_msg):
+        rospy.loginfo("[Sim] Received time steps. Received or? " + str(self.received_ori_seq))
         self.computation_time_steps = int_msg.data
         self.received_comp_time = True
         if self.received_ori_seq:
@@ -107,6 +109,8 @@ class SimNode(object):
 
     def publish_obs(self):
         # Publishing the observations
+        rospy.loginfo("[Sim] Publishing observations")
+
         time, ourd_p, _, _, othd_p = self.world.get_state()
 
         # Publish our duckie pose
@@ -123,7 +127,9 @@ class SimNode(object):
         othd_p_msg.x = othd_p[0]
         othd_p_msg.y = othd_p[1]
         othd_p_msg.theta = othd_p[2]
-        self.pub_pose_our_duckie_obs.publish(othd_p_msg)
+        self.pub_pose_other_duckie_obs.publish(othd_p_msg)
+
+        rospy.loginfo("[Sim] Published observations")
 
     def publish_state(self):
         # Publishing the state

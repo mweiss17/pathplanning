@@ -1,7 +1,7 @@
 import logging
 import rospy
-from enums import Ground, SafetyStatus
-from .planner import RRT_Dubins
+from dt_comm.enums import Ground, SafetyStatus
+from dt_agent.planner import RRT_Dubins
 
 
 class Agent(object):
@@ -9,9 +9,9 @@ class Agent(object):
     world_dim = (100, 100)
     speed_of_light = 1
 
-    def __init(roadwidth,horizon):
+    def __init__(self, roadwidth, horizon):
 
-        self.ourduckie_horizon = ourduckie_horizon                              ##in terms of horizon or time
+        self.ourduckie_horizon = horizon                              ##in terms of horizon or time
         self.lane_width = roadwidth
         self.time_steps = 12 #??
 
@@ -23,13 +23,13 @@ class Agent(object):
         #idea: extension to rrt for dynamic obstacles -- > give propagated positions in time (of the obstacles) to the rrt class, 
         #and do the collision check with the propagated value (storing with each node a 't' value to know at which time step this node would be reached) 
 
-        self.other_bot.radius = 0 ##set this
-        self.ourPlanner = RRT_Dubins(self.lane_width, self.ourduckie_horizon)
+        # self.other_bot.radius = 0 ##set this
+        #self.ourPlanner = RRT_Dubins(self.lane_width, self.ourduckie_horizon)
 
-	def compute_our_plan(other_duckie_obs): 
-	    orientation_seq = self.ourPlanner.update_plan(other_duckie_obs,[self.other_bot.radius]) #note: other_duckie_obs here is a list where we have observed positions of each of the duckeibots other than us
-	    
-	    #TODO: pass on time step info 
+    def compute_our_plan(other_duckie_obs): 
+        orientation_seq = self.ourPlanner.update_plan(other_duckie_obs,[self.other_bot.radius]) #note: other_duckie_obs here is a list where we have observed positions of each of the duckeibots other than us
+        
+        #TODO: pass on time step info 
         
         return orientation_seq
 

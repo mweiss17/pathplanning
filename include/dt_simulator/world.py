@@ -32,7 +32,7 @@ class World(object):
 
     def step(self):
         for bot in [self.my_bot, self.other_bot]:
-            rospy.loginfo("[sim_node][world] Step at time: " + str(self.time) + " with "+ bot.type + ": " + str(bot.pos()))
+            # rospy.loginfo("[sim_node][world] Step at time: " + str(self.time) + " with "+ bot.type + ": " + str(bot.pos()))
             bot.sample_plan()
 
         self.time += self.dt

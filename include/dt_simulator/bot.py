@@ -33,7 +33,6 @@ class Bot(object):
         self.theta = angle
         self.x += math.sin(angle) * speed * self.dt
         self.y += math.cos(angle) * speed * self.dt
-        rospy.loginfo("theta: " + str(self.theta))
 
 
     def sample_plan(self):
