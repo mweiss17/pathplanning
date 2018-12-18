@@ -22,6 +22,9 @@ class Bot(object):
     def pos(self):
         return (self.x, self.y, self.theta)
 
+    def vel(self):
+        return self.velocity
+
     def update_plan(self, plan):
         self.plan = deque(plan)
 

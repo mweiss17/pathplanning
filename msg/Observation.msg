@@ -1,0 +1,6 @@
+pathplan_uncertainty/Pose2DTimeStep our_duckie_pose
+float32 our_duckie_velocity
+float32 our_duckie_radius
+pathplan_uncertainty/Pose2DTimeStep other_duckie_pose
+float32 other_duckie_velocity
+float32 other_duckie_radius
