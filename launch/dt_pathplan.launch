@@ -3,7 +3,10 @@
     <rosparam command="load" file="$(find pathplan_uncertainty)/config/rewards.yaml"/>
     <rosparam command="load" file="$(find pathplan_uncertainty)/config/communications.yaml"/>
     <rosparam command="load" file="$(find pathplan_uncertainty)/config/sim.yaml"/>
+    <rosparam command="load" file="$(find pathplan_uncertainty)/config/duckiebots.yaml"/>
+
     
     <include file="$(find pathplan_uncertainty)/launch/dt_simulator_node.launch"/>
     <include file="$(find pathplan_uncertainty)/launch/dt_manager_node.launch"/>
+    <include file="$(find pathplan_uncertainty)/launch/dt_agent_node.launch"/>
 </launch>

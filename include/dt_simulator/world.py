@@ -32,7 +32,7 @@ class World(object):
 
     def step(self):
         for bot in [self.my_bot, self.other_bot]:
-            rospy.loginfo("[sim_node][world] Step at time: " + str(self.time) + " with "+ bot.type + ": " + str(bot.pos()))
+            # rospy.loginfo("[sim_node][world] Step at time: " + str(self.time) + " with "+ bot.type + ": " + str(bot.pos()))
             bot.sample_plan()
 
         self.time += self.dt
@@ -40,7 +40,7 @@ class World(object):
         self.my_bot_safety_status = self.check_safety(self.my_bot, self.other_bot)
 
     def get_state(self):
-        return self.time, self.my_bot.pos(), self.my_bot_safety_status, self.my_bot_ground_type, self.other_bot.pos()
+        return self.time, self.my_bot.pos(), self.my_bot.vel(), self.my_bot_safety_status, self.my_bot_ground_type, self.other_bot.pos(), self.other_bot.vel()
 
     def update_our_duckie_plan(self, plan):
         self.my_bot.update_plan(plan)
