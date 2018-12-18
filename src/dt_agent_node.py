@@ -33,6 +33,13 @@ class AgentNode(object):
 
         rospy.loginfo("[AgentNode] Initialized.")
 
+        rospy.sleep(1)
+        
+        rospy.loginfo("[AgentNode] Starting the process.")
+        self.start_process()
+
+
+
     def observation_cb(self, obs_msg):
         time = obs_msg.our_duckie_pose.time
         self.compute_our_plan(time)
@@ -56,6 +63,12 @@ class AgentNode(object):
         command_msg.computation_time_steps = timesteps
 
         self.pub_agent_command.publish(command_msg)
+
+    def start_process(self):
+        plan = []
+        timesteps = 1
+
+        self.publish_plan(plan, timesteps)
 
 
     def onShutdown(self):
