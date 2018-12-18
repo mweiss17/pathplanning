@@ -28,14 +28,14 @@ class Bot(object):
     def update_plan(self, plan):
         self.plan = deque(plan)
 
-    def drive(self, angle, speed):
+    def drive(self, angle, velocity):
         if self.theta - angle > self.limit:
             angle = self.theta - self.limit
         elif angle - self.theta > self.limit:
             angle = self.theta + self.limit
         self.theta = angle
-        self.x += math.sin(angle) * speed * self.dt
-        self.y += math.cos(angle) * speed * self.dt
+        self.x += math.sin(angle) * velocity * self.dt
+        self.y += math.cos(angle) * velocity * self.dt
 
 
     def sample_plan(self):
