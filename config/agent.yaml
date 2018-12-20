@@ -1,2 +1,9 @@
 agent:
-  horizon_length: 12.0 
+  planner:
+    time_horizon: 8.0 # seconds
+    y_resolution: 0.4
+    y_horizon: 8.0 #m
+    vel_resolution: 0.2
+  computation_time:
+    mean: 5.0
+    std_dev: 1.5

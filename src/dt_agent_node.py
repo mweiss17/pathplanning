@@ -11,15 +11,21 @@ class AgentNode(object):
 
         # Parameters 
 
-        ## Time
-        self.dt = rospy.get_param("/sim/dt")
-
-        ## World parameters
-        self.road_width = rospy.get_param("/sim/world/road/width")
-
         ## Agent parameters
-        self.horizon_length = rospy.get_param("/agent/horizon_length")
+        self.time_horizon = rospy.get_param("/agent/planner/time_horizon")
+        self.vel_resolution = rospy.get_param("/agent/planner/vel_resolution")
+        self.y_resolution = rospy.get_param("/agent/planner/y_resolution")
+        self.y_horizon = rospy.get_param("/agent/planner/y_horizon")
+        self.comp_time_mean = rospy.get_param("/agent/computation_time/mean")
+        self.comp_time_std_dev = rospy.get_param("/agent/computation_time/std_dev")        
+        self.agent_params = {"time_horizon": self.time_horizon, "vel_resolution": self.vel_resolution, "y_resolution": self.y_resolution, "y_horizon": self.y_horizon, "comp_time_mean": self.comp_time_mean, "comp_time_std_dev": self.comp_time_std_dev}
 
+        ## Sim parameters
+        self.dt = rospy.get_param("/sim/dt")
+        self.road_width = rospy.get_param("/sim/world/road/width")
+        self.other_duckie_type = rospy.get_param("/sim/other_duckie_type")
+        self.other_duckie_max_acceleration = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/max_acceleration")
+        self.sim_params = {"dt": self.dt, "road_width": self.road_width, "other_duckie_type": self.other_duckie_type, "other_duckie_max_acceleration": self.other_duckie_max_acceleration }
 
         #Publishers
         self.pub_agent_command = rospy.Publisher("/agent/command", AgentCommand, queue_size = 5)
@@ -28,28 +34,27 @@ class AgentNode(object):
         self.sub_observations = rospy.Subscriber("/sim/obs/observations", Observation, self.observation_cb)
         
         # Agent
-        self.agent = Agent(self.road_width, self.horizon_length)
+        self.agent = Agent(self.agent_params, self.sim_params)
 
 
         rospy.loginfo("[AgentNode] Initialized.")
 
         rospy.sleep(1)
-        
+
         rospy.loginfo("[AgentNode] Starting the process.")
         self.start_process()
 
 
 
     def observation_cb(self, obs_msg):
+        self.compute_our_plan(obs_msg)
+
+
+    def compute_our_plan(self, obs_msg):
         time = obs_msg.our_duckie_pose.time
-        self.compute_our_plan(time)
-
-
-    def compute_our_plan(self, time):
         rospy.loginfo("[AgentNode] Compute our plan at time " + str(time))
 
-        plan = [0, 0, 0, 0, 0]
-        timesteps = 5
+        plan, timesteps = self.agent.compute_our_plan(obs_msg)
 
         self.publish_plan(plan, timesteps)
 
