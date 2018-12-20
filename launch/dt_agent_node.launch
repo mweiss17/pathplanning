@@ -2,10 +2,13 @@
     <arg name="pkg_name" value="pathplan_uncertainty"/>
     <arg name="node_name" default="dt_agent_node"/>
 
+    <rosparam command="load" file="$(find pathplan_uncertainty)/config/agent.yaml"/>
+    <rosparam command="load" file="$(find pathplan_uncertainty)/config/communications.yaml"/>
+    <rosparam command="load" file="$(find pathplan_uncertainty)/config/duckiebots.yaml"/>
+    <rosparam command="load" file="$(find pathplan_uncertainty)/config/sim.yaml"/>
     
     <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true">
-        <rosparam command="load" file="$(find pathplan_uncertainty)/config/agent.yaml"/>
-        <rosparam command="load" file="$(find pathplan_uncertainty)/config/communications.yaml"/>
+
     </node>
 
 </launch>

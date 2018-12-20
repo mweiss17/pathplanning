@@ -6,7 +6,7 @@ from std_msgs.msg import Float32MultiArray
 from std_msgs.msg import Int32
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Pose2D
-from pathplan_uncertainty.msg import Int32TimeStep, Pose2DTimeStep, WorldState
+from pathplan_uncertainty.msg import Int32TimeStep, Pose2DTimeStep, WorldState, Observation, AgentCommand
 from pathplan_uncertainty.srv import GroundType
 from dt_simulator.world import World, DroveOffTheFreakinRoad, RammedAFreakinDuckiebot 
 from dt_simulator.visualizer import Visualizer
@@ -38,22 +38,25 @@ class SimNode(object):
         self.world_params = {"road_width": self.road_width}
 
         ## Our duckie parameters
-        self.our_duckie_start_pose = rospy.get_param("/sim/our_duckie/start_pose")
-        self.our_duckie_velocity = rospy.get_param("/sim/our_duckie/velocity")
-        self.our_duckie_radius = rospy.get_param("/sim/our_duckie/radius")
-        self.our_duckie_type = rospy.get_param("/sim/our_duckie/type")
-        self.our_duckie_angle_change_limit = rospy.get_param("/sim/our_duckie/angle_change_limit")
+        self.our_duckie_start_pose = rospy.get_param("/duckiebots/our_duckie/start_pose")
+        self.our_duckie_velocity = rospy.get_param("/duckiebots/our_duckie/velocity")
+        self.our_duckie_radius = rospy.get_param("/duckiebots/our_duckie/radius")
+        self.our_duckie_type = rospy.get_param("/duckiebots/our_duckie/type")
+        self.our_duckie_angle_change_limit = rospy.get_param("/duckiebots/our_duckie/angle_change_limit")
 
         self.our_duckie_params = {"start_pose": self.our_duckie_start_pose, "velocity": self.our_duckie_velocity, "radius": self.our_duckie_radius, "type": self.our_duckie_type, "angle_change_limit": self.our_duckie_angle_change_limit}
 
         ## Other duckie parameters
-        self.other_duckie_start_pose = rospy.get_param("/sim/other_duckie/start_pose")
-        self.other_duckie_velocity = rospy.get_param("/sim/other_duckie/velocity")
-        self.other_duckie_radius = rospy.get_param("/sim/other_duckie/radius")
-        self.other_duckie_type = rospy.get_param("/sim/other_duckie/type")
-        self.other_duckie_angle_change_limit = rospy.get_param("/sim/other_duckie/angle_change_limit")
+        self.other_duckie_type = rospy.get_param("/sim/other_duckie_type")
 
-        self.other_duckie_params = {"start_pose": self.other_duckie_start_pose, "velocity": self.other_duckie_velocity, "radius": self.other_duckie_radius, "type": self.other_duckie_type, "angle_change_limit": self.other_duckie_angle_change_limit}
+        self.other_duckie_start_pose = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/start_pose")
+        self.other_duckie_velocity = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/velocity")
+        self.other_duckie_radius = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/radius")
+        self.other_duckie_angle_change_limit = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/angle_change_limit")
+        self.other_duckie_max_acceleration = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/max_acceleration")
+        self.other_duckie_max_velocity = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/max_velocity")
+
+        self.other_duckie_params = {"start_pose": self.other_duckie_start_pose, "velocity": self.other_duckie_velocity, "radius": self.other_duckie_radius, "type": self.other_duckie_type, "angle_change_limit": self.other_duckie_angle_change_limit, "max_acceleration": self.other_duckie_max_acceleration, "max_velocity": self.other_duckie_max_velocity}
       
         # World
         self.world = World(self.sim_parameters, self.world_params, self.our_duckie_params, self.other_duckie_params)
@@ -69,43 +72,30 @@ class SimNode(object):
 
         self.pub_pose_our_duckie_obs = rospy.Publisher("/sim/obs/pose_our_duckie",Pose2DTimeStep, queue_size=1)
         self.pub_pose_other_duckie_obs = rospy.Publisher("/sim/obs/pose_other_duckie",Pose2DTimeStep, queue_size=1)
+        self.pub_observations = rospy.Publisher("/sim/obs/observations",Observation, queue_size=1)
 
         self.pub_image = rospy.Publisher("/sim/road_image", Image, queue_size=1)
         
         # Subscribers
-        self.sub_agent_orientation_seq = rospy.Subscriber("/agent/orientation_seq",Float32MultiArray, self.orientation_seq_cb)
-        self.sub_agent_computation_time_steps = rospy.Subscriber("/agent/computation_time_steps", Int32, self.computation_time_cb)
+        self.sub_agent_command = rospy.Subscriber("/agent/command", AgentCommand, self.agent_command_cb)
 
         # Services
         self.srv_ground_type = rospy.Service('get_ground_type',GroundType, self.ground_type_srv_cb)
 
-
-        # Temporary variables
-        self.orientation_seq = []
-        self.received_comp_time = False
-        self.computation_time_steps = 10
-        self.received_ori_seq = False
-
         rospy.loginfo("[SimNode] Initialized.")
 
+    def agent_command_cb(self, command_msg):
+        self.publish_obs()
+        orientation_seq = command_msg.orientation_seq.data
+        computation_time_steps = command_msg.computation_time_steps
+        self.propagate_action(orientation_seq, computation_time_steps)
 
-    def orientation_seq_cb(self, ori_seq_msg):
-        self.orientation_seq = ori_seq_msg.data
-        self.received_ori_seq = True
-        if self.received_comp_time:
-            self.publish_obs()
-            self.propagate_action()
-
-    def computation_time_cb(self, int_msg):
-        self.computation_time_steps = int_msg.data
-        self.received_comp_time = True
-        if self.received_ori_seq:
-            self.publish_obs()
-            self.propagate_action()
 
     def publish_obs(self):
         # Publishing the observations
-        time, ourd_p, _, _, othd_p = self.world.get_state()
+        rospy.loginfo("[Sim] Publishing observations")
+
+        time, ourd_p, ourd_v, _, _, othd_p, othd_v = self.world.get_state()
 
         # Publish our duckie pose
         ourd_p_msg = Pose2DTimeStep()
@@ -121,11 +111,24 @@ class SimNode(object):
         othd_p_msg.x = othd_p[0]
         othd_p_msg.y = othd_p[1]
         othd_p_msg.theta = othd_p[2]
-        self.pub_pose_our_duckie_obs.publish(othd_p_msg)
+        self.pub_pose_other_duckie_obs.publish(othd_p_msg)
+
+        # Publish all observations
+        obs_msg = Observation()
+        obs_msg.our_duckie_pose = ourd_p_msg
+        obs_msg.our_duckie_velocity = ourd_v
+        obs_msg.our_duckie_radius = self.our_duckie_radius
+
+        obs_msg.other_duckie_pose = othd_p_msg
+        obs_msg.other_duckie_velocity = othd_v
+        obs_msg.other_duckie_radius = self.other_duckie_radius
+        self.pub_observations.publish(obs_msg)
+
+        rospy.loginfo("[Sim] Published observations")
 
     def publish_state(self):
         # Publishing the state
-        time, ourd_p, ourd_ss, ourd_gt, othd_p = self.world.get_state()
+        time, ourd_p, ourd_v, ourd_ss, ourd_gt, othd_p, othd_v = self.world.get_state()
 
          # Publish our duckie pose
         ourd_p_msg = Pose2DTimeStep()
@@ -171,21 +174,14 @@ class SimNode(object):
             self.pub_image.publish(image_msg_out)
 
 
-    def propagate_action(self):
+    def propagate_action(self, orientation_seq, computation_time_steps):
         # Propagate action in world
-        self.world.update_our_duckie_plan(self.orientation_seq)
+        self.world.update_our_duckie_plan(orientation_seq)
 
-        for k in range(self.computation_time_steps):
+        for k in range(computation_time_steps):
             rospy.sleep(self.dt_in_sim)
             self.world.step()
             self.publish_state()
-
-
-        # Reset temp. variables
-        self.orientation_seq = []
-        self.received_ori_seq = False
-        self.received_comp_time = False
-        pass
 
     def ground_type_srv_cb(self, req_msg):
         # Returns the ground type for a given pose and radius (see dt_comm/enums for ground_types)

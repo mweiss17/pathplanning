@@ -53,6 +53,8 @@ add_message_files(
    Int32TimeStep.msg
    Pose2DTimeStep.msg
    WorldState.msg
+   Observation.msg
+   AgentCommand.msg
 )
 
 ## Generate services in the 'srv' folder

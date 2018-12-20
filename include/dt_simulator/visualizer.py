@@ -24,10 +24,10 @@ class Visualizer(object):
         image = np.zeros((self.image_height,self.image_width, 3), np.uint8)
         road_width_pix = self.road_width*self.m2pix
 
-        image[:,0:(self.image_width-road_width_pix)/2] = (20, 200, 20) # grass left side of the road
-        image[:,(self.image_width+road_width_pix)/2:self.image_width] = (20, 200, 20) # grass right side of the road
-        image[:, (self.image_width-road_width_pix)/2:self.image_width/2] = (60, 60, 100) # wrong lane (a bit red)
-        image[:, self.image_width/2:(self.image_width+road_width_pix)/2:] = (60, 100, 60) # wrong lane (a bit green)
+        image[:,0:int((self.image_width-road_width_pix)/2)] = (20, 200, 20) # grass left side of the road
+        image[:,int((self.image_width+road_width_pix)/2):int(self.image_width)] = (20, 200, 20) # grass right side of the road
+        image[:, int((self.image_width-road_width_pix)/2):int(self.image_width/2)] = (60, 60, 100) # wrong lane (a bit red)
+        image[:, int(self.image_width/2):int((self.image_width+road_width_pix)/2):] = (60, 100, 60) # wrong lane (a bit green)
         
         return image
 
@@ -50,7 +50,6 @@ class Visualizer(object):
         theta = pose[2]
         u_bot = int(x*self.m2pix + center_u)
         v_bot = int(center_y - y*self.m2pix)
-        print("u, v: " + str(u_bot) + ", " + str(v_bot))
         
         # Fill circle around this position with given radius
         for u in range(u_bot-radius_pix, u_bot+radius_pix):     # For pixels the square around the bot
@@ -58,6 +57,9 @@ class Visualizer(object):
                 if ((u-u_bot)*(u-u_bot) + (v-v_bot)*(v-v_bot)) < radius_pix*radius_pix: # Check if in a circle shape
                     if v < self.image_height and v >= 0 and u < self.image_width and u >= 0:   # Check that it is in the image dimensions
                         image[v, u] = color_code
+                        if abs((u-u_bot) - math.tan(theta)*(v_bot-v)) <= 1.5 and (v_bot-v)*math.cos(theta+0.01) >= 0: # Check if point is on orientation line and in the right direction
+                            image[v, u] = (0, 0, 0)                                     # Put in black
+
 
         return image
 

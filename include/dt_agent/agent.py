@@ -1,7 +1,8 @@
 import logging
 import rospy
-from enums import Ground, SafetyStatus
-from .planner import RRT_Dubins
+from dt_comm.enums import Ground, SafetyStatus
+from dt_agent.planner import RRT_Dubins
+from .predictor import PredictorDiscretePropagation
 
 
 class Agent(object):
@@ -9,11 +10,24 @@ class Agent(object):
     world_dim = (100, 100)
     speed_of_light = 1
 
-    def __init(roadwidth,horizon):
+    def __init__(self, agent_params, sim_params):
 
-        self.ourduckie_horizon = ourduckie_horizon                              ##in terms of horizon or time
-        self.lane_width = roadwidth
-        self.time_steps = 12 #??
+        self.time_horizon = agent_params["time_horizon"]
+        self.y_resolution = agent_params["y_resolution"]
+        self.vel_resolution = agent_params["vel_resolution"]
+        self.comp_time_mean = agent_params["comp_time_mean"]
+        self.comp_time_std_dev = agent_params["comp_time_std_dev"]
+
+        self.dt = sim_params["dt"]
+        self.road_width = sim_params["road_width"]
+        self.other_duckie_type = sim_params["other_duckie_type"]
+        self.other_duckie_max_acceleration = sim_params["other_duckie_max_acceleration"]
+
+
+        # Params
+
+
+        self.predictor = PredictorDiscretePropagation(agent_params, sim_params)
 
         #the dubins rrt method will compute rrt with an added constraint -> (min turning radius(so that unrealistic/jerky turns aren't used), 
         #and that bot can go only fwd)
@@ -23,15 +37,26 @@ class Agent(object):
         #idea: extension to rrt for dynamic obstacles -- > give propagated positions in time (of the obstacles) to the rrt class, 
         #and do the collision check with the propagated value (storing with each node a 't' value to know at which time step this node would be reached) 
 
-        self.other_bot.radius = 0 ##set this
-        self.ourPlanner = RRT_Dubins(self.lane_width, self.ourduckie_horizon)
+        # self.other_bot.radius = 0 ##set this
+        #self.ourPlanner = RRT_Dubins(self.lane_width, self.ourduckie_horizon)
 
-	def compute_our_plan(other_duckie_obs): 
-	    orientation_seq = self.ourPlanner.update_plan(other_duckie_obs,[self.other_bot.radius]) #note: other_duckie_obs here is a list where we have observed positions of each of the duckeibots other than us
-	    
-	    #TODO: pass on time step info 
+    def compute_our_plan(self, other_duckie_obs): 
+
+        self.predictor.predict(other_duckie_obs)
+
+        prob = self.predictor.get_probability(5, 10)
+        rospy.loginfo("Probability of being at position 7 at time 5 is: " + str (prob))
+
+        plan = [0, 0, 0, 0, 0]
+        timesteps = 5
+
+        return plan, timesteps
+
+        #orientation_seq = self.ourPlanner.update_plan(other_duckie_obs,[self.other_bot.radius]) #note: other_duckie_obs here is a list where we have observed positions of each of the duckeibots other than us
         
-        return orientation_seq
+        #TODO: pass on time step info 
+        
+        #return orientation_seq
 
 
         ## ! there needs to be a parameter that decides what to do if collision check is true for us with a rolled out obstacle which might not be in that position at the same time as us, but kind of near in time

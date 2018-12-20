@@ -1,38 +1,88 @@
-import rospy
+#!/usr/bin/env python
 
+import rospy
 from std_msgs.msg import Float32MultiArray
-from std_msgs.msg import Int32
-from geometry_msgs.msg import Pose2D
+from pathplan_uncertainty.msg import Pose2DTimeStep, Observation, AgentCommand
 from pathplan_uncertainty.srv import GroundType
 from dt_agent.agent import Agent
 
 class AgentNode(object):
     def __init__(self):  
+
         # Parameters 
-        self.dt = rospy.get_param("/dt_agent_node/dt")
-        self.roadwidth = rospy.get_param("/dt_agent_node/road/width")
-        self.horizon_length = rospy.get_param("/dt_agent_node/road/horizon_length")
+
+        ## Agent parameters
+        self.time_horizon = rospy.get_param("/agent/planner/time_horizon")
+        self.vel_resolution = rospy.get_param("/agent/planner/vel_resolution")
+        self.y_resolution = rospy.get_param("/agent/planner/y_resolution")
+        self.y_horizon = rospy.get_param("/agent/planner/y_horizon")
+        self.comp_time_mean = rospy.get_param("/agent/computation_time/mean")
+        self.comp_time_std_dev = rospy.get_param("/agent/computation_time/std_dev")        
+        self.agent_params = {"time_horizon": self.time_horizon, "vel_resolution": self.vel_resolution, "y_resolution": self.y_resolution, "y_horizon": self.y_horizon, "comp_time_mean": self.comp_time_mean, "comp_time_std_dev": self.comp_time_std_dev}
+
+        ## Sim parameters
+        self.dt = rospy.get_param("/sim/dt")
+        self.road_width = rospy.get_param("/sim/world/road/width")
+        self.other_duckie_type = rospy.get_param("/sim/other_duckie_type")
+        self.other_duckie_max_acceleration = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/max_acceleration")
+        self.other_duckie_max_velocity = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/max_velocity")
+        self.sim_params = {"dt": self.dt, "road_width": self.road_width, "other_duckie_type": self.other_duckie_type, "other_duckie_max_acceleration": self.other_duckie_max_acceleration, "other_duckie_max_velocity": self.other_duckie_max_velocity}
 
         #Publishers
-        self.pub_agent_orientation_seq = rospy.Publisher("/agent/orientation_seq",Float32MultiArray, queue_size=1)
-        self.pub_agent_computation_time_steps = rospy.Publisher("/agent/computation_time_steps", Int32, queue_size=1)
-        
+        self.pub_agent_command = rospy.Publisher("/agent/command", AgentCommand, queue_size = 5)
 
         # Subscribers
-        self.sub_pose_other_duckie_obs = rospy.Subscriber("/sim/obs/pose_other_duckie",Pose2D, self.compute_ourplan_cb)
+        self.sub_observations = rospy.Subscriber("/sim/obs/observations", Observation, self.observation_cb)
         
-        self.othduckie_obs = Pose2D()
-        self.received_othduckie_obs = False
-        self.agent = Agent(self.roadwidth, self.horizon_length)
+        # Agent
+        self.agent = Agent(self.agent_params, self.sim_params)
 
-def compute_ourplan_cb(self, othduckie_obs_msg):   
-    rospy.loginfo("[SimNode] Received other duckie's obs.")
-    self.othduckie_obs = othduckie_obs_msg.data
-    self.received_othduckie_obs = True
-    #TODO: do world coord transformation for other duckie if needed since we are always at 0,0 
 
-    plan = self.agent.compute_our_plan([self.othduckie_obs])
+        rospy.loginfo("[AgentNode] Initialized.")
 
-    #publish seq of actions and time steps
-    self.pub_agent_orientation_seq.publish(plan)
-    self.pub_agent_computation_time_steps.publish()  #how to compute
+        rospy.sleep(1)
+
+        rospy.loginfo("[AgentNode] Starting the process.")
+        self.start_process()
+
+
+
+    def observation_cb(self, obs_msg):
+        self.compute_our_plan(obs_msg)
+
+
+    def compute_our_plan(self, obs_msg):
+        time = obs_msg.our_duckie_pose.time
+        rospy.loginfo("[AgentNode] Compute our plan at time " + str(time))
+
+        plan, timesteps = self.agent.compute_our_plan(obs_msg)
+
+        self.publish_plan(plan, timesteps)
+
+    def publish_plan(self, plan, timesteps):
+        command_msg = AgentCommand()
+
+        plan_msg = Float32MultiArray()
+        plan_msg.data = plan
+        command_msg.orientation_seq = plan_msg
+
+        command_msg.computation_time_steps = timesteps
+
+        self.pub_agent_command.publish(command_msg)
+
+    def start_process(self):
+        plan = []
+        timesteps = 1
+
+        self.publish_plan(plan, timesteps)
+
+
+    def onShutdown(self):
+        rospy.loginfo("[AgentNode] Shutdown.")
+
+
+if __name__ == '__main__':
+    rospy.init_node('agent_node',anonymous=False)
+    agent_node = AgentNode()
+    rospy.on_shutdown(agent_node.onShutdown)
+    rospy.spin()
