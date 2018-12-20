@@ -70,7 +70,7 @@ class PredictorDiscretePropagation(object):
         for k_t in range(1, number_time_steps):             # For each time step
             prev_time = self.time + (k_t-1)*self.dt                  # Compute previous time 
             cur_time = self.time + k_t*self.dt                       # Compute current time
-            rospy.loginfo("[Agent][Predictor] Predicting for time: " + str(cur_time))
+            #rospy.loginfo("[Agent][Predictor] Predicting for time: " + str(cur_time))
 
             for k_y in range(0, number_y_steps):                     # For each y step
                 y = k_y*self.y_resolution                               # Compute current y
@@ -79,10 +79,11 @@ class PredictorDiscretePropagation(object):
                     el_vel = y_element[1]                                           # With this velocity
                     for vel_change in self.vel_changes:                                 # For each possible change of velocity
                         next_vel = el_vel+vel_change                                        # Next velocity
-                        if next_vel < 0:
+                        if next_vel < 0:                                                        # Checking limits
                             next_vel = 0
                         elif next_vel > self.other_duckie_max_velocity:
                             next_vel = self.other_duckie_max_velocity
+                        next_vel = ((1000 * next_vel)//1) /1000                             # Limiting the number of decimals of vel to 3
                         next_y = y + next_vel*self.dt                                       # Next y
                         next_prob = el_prob*self.prob_of_each_vel_change                    # Next probability
                         prob_vel_duo = [next_prob, next_vel]                             
@@ -115,7 +116,7 @@ class PredictorDiscretePropagation(object):
 
             already_there = False
             for element in values_before:                               # Check for each element if
-                if element[1] == prob_vel_duo[1]:                     # there is already a probability at this velocity
+                if abs(element[1] - prob_vel_duo[1]) <= 0.01:           # there is already a probability at this velocity
                     element[0] += prob_vel_duo[0]                     # If so, add probability
                     already_there = True
             if not already_there:                                       # Otherwise, add probability/velocity duo to the list
@@ -131,9 +132,32 @@ class PredictorDiscretePropagation(object):
             return []
 
     def get_probability(self, time, y):
+        if time < self.time:
+            rospy.loginfo("[Agent][Predictor] Trying to get probability for a time that has already passed: " + str(time))
+            return 0
+
+        rospy.loginfo("[Agent][Predictor] Fetching probability at time: " + str(time) + "and at y: " + str(y))
+
         time_key = int(time*100)
+        time_key_temp = time_key
+        while time_key_temp not in self.prediction and time_key - time_key_temp <= 10:
+            rospy.loginfo("[Agent][Predictor] Time key " + str(time_key) + " is NOT in the prediction list")
+            rospy.loginfo("[Agent][Predictor] Prediction list keys: " + str(self.prediction.keys()))
+            #rospy.loginfo("[Agent][Predictor] Prediction: " + str(self.prediction))
+            time_key_temp = time_key_temp - 1
+            if time_key_temp in self.prediction:
+                time_key = time_key_temp
+
+
         if time_key in self.prediction and y <= self.y_horizon and y >= 0:
             y_index = int(y/self.y_resolution)
+
+            rospy.loginfo("[Agent][Predictor] Time key " + str(time_key) + " is in the prediction list")
+
+            rospy.loginfo("[Agent][Predictor] Prediction[time_key]: " + str(self.prediction[time_key]))
+            rospy.loginfo("[Agent][Predictor] y_index " + str(y_index))
+
+            rospy.loginfo("[Agent][Predictor] Prediction[time_key][y_index]: " + str(self.prediction[time_key][y_index]))
             list_of_prob_vel_duos = self.prediction[time_key][y_index]
             probability = 0
             for prob_vel_duo in list_of_prob_vel_duos:
