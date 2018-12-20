@@ -18,6 +18,8 @@ class Bot(object):
         self.velocity = duckie_params["velocity"]
         if "max_acceleration" in duckie_params:
             self.max_acceleration = duckie_params["max_acceleration"]
+        if "max_velocity" in duckie_params:
+            self.max_velocity = duckie_params["max_velocity"]
 
     def pos(self):
         return (self.x, self.y, self.theta)
@@ -62,7 +64,7 @@ class UnstableSpeedBot(Bot):
         self.velocity += random_acceleration * self.dt
         if self.velocity < 0:
             self.velocity = 0
-        elif self.velocity > 1:
-            self.velocity = 1
+        elif self.velocity > self.max_velocity:
+            self.velocity = self.max_velocity
         self.drive(self.theta, self.velocity)
 

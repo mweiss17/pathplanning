@@ -25,7 +25,8 @@ class AgentNode(object):
         self.road_width = rospy.get_param("/sim/world/road/width")
         self.other_duckie_type = rospy.get_param("/sim/other_duckie_type")
         self.other_duckie_max_acceleration = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/max_acceleration")
-        self.sim_params = {"dt": self.dt, "road_width": self.road_width, "other_duckie_type": self.other_duckie_type, "other_duckie_max_acceleration": self.other_duckie_max_acceleration }
+        self.other_duckie_max_velocity = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/max_velocity")
+        self.sim_params = {"dt": self.dt, "road_width": self.road_width, "other_duckie_type": self.other_duckie_type, "other_duckie_max_acceleration": self.other_duckie_max_acceleration, "other_duckie_max_velocity": self.other_duckie_max_velocity}
 
         #Publishers
         self.pub_agent_command = rospy.Publisher("/agent/command", AgentCommand, queue_size = 5)

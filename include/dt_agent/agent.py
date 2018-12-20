@@ -2,7 +2,7 @@ import logging
 import rospy
 from dt_comm.enums import Ground, SafetyStatus
 from dt_agent.planner import RRT_Dubins
-from .predictor import Predictor
+from .predictor import PredictorDiscretePropagation
 
 
 class Agent(object):
@@ -27,7 +27,7 @@ class Agent(object):
         # Params
 
 
-        self.predictor = Predictor(agent_params, sim_params)
+        self.predictor = PredictorDiscretePropagation(agent_params, sim_params)
 
         #the dubins rrt method will compute rrt with an added constraint -> (min turning radius(so that unrealistic/jerky turns aren't used), 
         #and that bot can go only fwd)

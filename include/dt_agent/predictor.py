@@ -5,7 +5,7 @@ import numpy as np
 import time
 
 
-class Predictor(object):
+class PredictorDiscretePropagation(object):
     def __init__(self, agent_params, sim_params):
 
         # Parameters
@@ -19,6 +19,7 @@ class Predictor(object):
         self.road_width = sim_params["road_width"]
         self.other_duckie_type = sim_params["other_duckie_type"]
         self.other_duckie_max_acceleration = sim_params["other_duckie_max_acceleration"]
+        self.other_duckie_max_velocity = sim_params["other_duckie_max_velocity"]
 
         # Build the velocity changes list
         self.max_vel_change = self.other_duckie_max_acceleration * self.dt          # How much can we change in a time step, in + or -
@@ -78,6 +79,10 @@ class Predictor(object):
                     el_vel = y_element[1]                                           # With this velocity
                     for vel_change in self.vel_changes:                                 # For each possible change of velocity
                         next_vel = el_vel+vel_change                                        # Next velocity
+                        if next_vel < 0:
+                            next_vel = 0
+                        elif next_vel > self.other_duckie_max_velocity:
+                            next_vel = self.other_duckie_max_velocity
                         next_y = y + next_vel*self.dt                                       # Next y
                         next_prob = el_prob*self.prob_of_each_vel_change                    # Next probability
                         prob_vel_duo = [next_prob, next_vel]                             
@@ -95,7 +100,7 @@ class Predictor(object):
 
             if time_key not in self.prediction:                         # If time not in prediction yet, instantiate the new list at this time
                 #rospy.loginfo("[Agent][Predictor][add_in_prediction] Adding new time_key: " + str(time_key))
-                number_y_steps = int(self.y_horizon/self.y_resolution)
+                number_y_steps = int(self.y_horizon/self.y_resolution)+1
                 self.prediction[time_key] = [[] for x in range(number_y_steps)] 
 
             #rospy.loginfo("[Agent][Predictor][add_in_prediction] self.prediction[" + str(time_key) + "]: " + str(self.prediction[time_key]))
@@ -136,3 +141,4 @@ class Predictor(object):
             return probability
         else:
             return 0
+
