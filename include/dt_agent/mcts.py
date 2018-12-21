@@ -18,17 +18,14 @@ SCALAR=1/math.sqrt(2.0)
 #todo:
 #call P(x,y,t) function to get collsion prob
 #gradually decrease exploitation
-#closeness to goal
+#decide how to define terminal states
 
-#don't surpass goal
-#prefer shorter straighter path
-#x-closeness to goal as well as y
-
-#pass over everything again once
+#to make sure:
+#	don't surpass goal
+#	prefer shorter straighter path
+#	keep track of x-closeness to goal as well as y
 
 class mctsPanner():
-
-	#how will State acccess mctsplanner functions
 
     def __init__(self, predictor, dt):
 
@@ -142,28 +139,28 @@ class State():
 
 	#right and left sides fo the road differentiate
 	#compute position related reward : wrt center line, road, center of lane
-	def get_road_losses():
+	def get_road_losses(self):
 		return 0
 
-	def get_collision_cost():
+	def get_collision_cost(self):
 		self.predictor.get_probability()
 		return 0
 
-	def get_goal_reward():
+	def get_goal_reward(self):
 		return 0
 
-	def pos_rel_lane():
+	def pos_rel_lane(self):
 		return 0
 
-	def pos_rel_centerline():
+	def pos_rel_centerline(self):
 		return 0
 
-	def pos_rel_sidewalk():
+	def pos_rel_sidewalk(self):
 		#same side sidewalk penalise less
 		#make sure radius-constraints are satisfied
 		return 0
 
-	def pos_rel_goal():
+	def pos_rel_goal(self):
 		return 0
 
 	def terminal(self):
@@ -174,7 +171,7 @@ class State():
 	def reward(self):
 		#this function needs to be populated depending on implementation and output of probability prediction module
 		#should basically take this x,y position -> convert to gridcell indices -> get reward at the index
-		r = 0
+		r = self.get_road_losses() + self.get_collision_cost()
 		return r
 
 	def __hash__(self):
