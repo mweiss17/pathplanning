@@ -23,6 +23,10 @@ class PredictorDiscretePropagation(object):
         self.other_duckie_max_velocity = sim_params["other_duckie_max_velocity"]
         self.other_duckie_min_velocity = sim_params["other_duckie_min_velocity"]
 
+        # Constant variables
+        self.number_time_steps = int(self.time_horizon/self.dt)
+        self.number_y_steps = int(self.y_horizon/self.y_resolution)
+
         # Build the velocity changes list
         self.max_vel_change = self.other_duckie_max_acceleration * self.dt          # How much can we change in a time step, in + or -
         self.number_vel_points = int(self.max_vel_change/self.vel_resolution)*2 + 1 # How many discrete points do we model
@@ -32,7 +36,7 @@ class PredictorDiscretePropagation(object):
         for k in range(self.number_vel_points):
             self.vel_changes.append(-eff_max_vel_change + k*self.vel_resolution)    # Start from -eff_max_vel_change and go up to +eff_max_vel_change passing by 0
 
-
+        self.other_duckie_radius = 0
 
         self.prediction = {}
         self.time = 0
@@ -47,7 +51,8 @@ class PredictorDiscretePropagation(object):
         other_duckie_theta = obs_msg.other_duckie_pose.theta
         other_duckie_pose = (other_duckie_x, other_duckie_y, other_duckie_theta)
         other_duckie_velocity = obs_msg.other_duckie_velocity
-        other_duckie_radius = obs_msg.other_duckie_radius
+        self.other_duckie_radius = obs_msg.other_duckie_radius
+        #rospy.loginfo("[Agent][Predictor] other_duckie y: " + str(other_duckie_y))
 
 
         #####
@@ -60,9 +65,7 @@ class PredictorDiscretePropagation(object):
         #####
 
         # Reinitializing prediction
-        rospy.loginfo("[Agent][Predictor] Predicting...")
-        number_time_steps = int(self.time_horizon/self.dt)
-        number_y_steps = int(self.y_horizon/self.y_resolution)
+        #rospy.loginfo("[Agent][Predictor] Predicting")
         self.prediction = {}
         init_prob = [1, other_duckie_velocity]
         self.add_in_prediction(self.time, other_duckie_y, init_prob)
@@ -70,10 +73,10 @@ class PredictorDiscretePropagation(object):
 
         # Propagating prediction (4rth degree for loop...)
 
-        for k_t in range(1, number_time_steps):             # For each time step
+        for k_t in range(1, self.number_time_steps):             # For each time step
             #rospy.loginfo("[Agent][Predictor] Time step: " + str(k_t))
             cur_time = prev_time + self.dt                       # Compute current time
-            for k_y in range(0, number_y_steps):                     # For each y step
+            for k_y in range(0, self.number_y_steps):                     # For each y step
                 y = k_y*self.y_resolution                               # Compute current y
                 for y_element in self.get_from_prediction(prev_time, y):     # For each element that existed at y in previous time
                     el_prob = y_element[0]                                   # Probability of being there previously
@@ -92,15 +95,16 @@ class PredictorDiscretePropagation(object):
             prev_time = cur_time
 
         end = time.time()
-        rospy.loginfo("[Agent][Predictor] Prediction time: " + str(end - start))
+        #rospy.loginfo("[Agent][Predictor] Prediction time: " + str(end - start))
+        rospy.loginfo("[Agent][Predictor] Prediction made")
+
 
     def add_in_prediction(self, time, y, prob_vel_duo):
         if time >= self.time and time <= self.time + self.time_horizon and y < self.y_horizon and y >= 0: # Only do something if in the time and space limits
 
             time_key = int(round(time,2)*100)
             if time_key not in self.prediction:                         # If time not in prediction yet, instantiate the new list at this time
-                number_y_steps = int(self.y_horizon/self.y_resolution)+1
-                self.prediction[time_key] = [[] for x in range(number_y_steps)] 
+                self.prediction[time_key] = [[] for x in range(self.number_y_steps)] 
 
             y_index = int(round(y/self.y_resolution))                   # Compute index for y 
 
@@ -129,7 +133,7 @@ class PredictorDiscretePropagation(object):
 
         time_key = int(round(time,2)*100)
         time_key_temp = time_key
-        while time_key_temp not in self.prediction and time_key - time_key_temp <= 10:
+        while time_key_temp not in self.prediction and time_key - time_key_temp <= self.dt*100:
             time_key_temp = time_key_temp - 1
             if time_key_temp in self.prediction:
                 time_key = time_key_temp
@@ -143,4 +147,42 @@ class PredictorDiscretePropagation(object):
             return probability
         else:
             return 0
+
+    def get_collision_probability(self, x_pos, y_pos, time):
+        if time < self.time:
+            rospy.loginfo("[Agent][Predictor] Trying to get probability for a time that has already passed: " + str(time))
+            return 0
+
+        if time >= self.time + self.time_horizon:
+            rospy.loginfo("[Agent][Predictor] Trying to get probability for a time that is further than time horizon: " + str(time))
+            return 0
+
+        time_key = int(round(time,2)*100)
+        time_key_temp = time_key
+        while time_key_temp not in self.prediction and time_key - time_key_temp <= self.dt*100:
+            time_key_temp = time_key_temp - 1
+            if time_key_temp in self.prediction:
+                time_key = time_key_temp
+
+        if time_key not in self.prediction:
+            if len(self.prediction.keys()) == 0:
+                return 0
+            else:
+                rospy.logwarn("[Agent][Predictor][get_collision_probability] Time_key : " + str(time_key) + " is not in prediction")
+                rospy.logwarn("                                              Time keys in prediction:" + str(self.prediction.keys()))
+                return 0
+
+        prediction_at_time = self.prediction[time_key]
+        probability = 0
+        for k_y in range(0, self.number_y_steps):
+            y = k_y*self.y_resolution                               
+            x = -self.road_width/4                                  # Other duckie always in the middle of the road
+            sq_distance_from_pos = (y_pos-y)**2 + (x_pos-x)**2      
+            if sq_distance_from_pos <= self.other_duckie_radius**2:
+                y_index = int(round(y/self.y_resolution))
+                for prob_vel_duo in prediction_at_time[y_index]:
+                    probability += prob_vel_duo[0]
+
+        return probability
+
 
