@@ -5,6 +5,7 @@ from std_msgs.msg import Float32MultiArray
 from pathplan_uncertainty.msg import Pose2DTimeStep, Observation, AgentCommand
 from pathplan_uncertainty.srv import GroundType
 from dt_agent.agent import Agent
+from dt_comm.enums import Ground
 
 class AgentNode(object):
     def __init__(self):  
@@ -29,6 +30,21 @@ class AgentNode(object):
         self.other_duckie_min_velocity = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/min_velocity")
         self.sim_params = {"dt": self.dt, "road_width": self.road_width, "other_duckie_type": self.other_duckie_type, "other_duckie_max_acceleration": self.other_duckie_max_acceleration, "other_duckie_max_velocity": self.other_duckie_max_velocity, "other_duckie_min_velocity": self.other_duckie_min_velocity}
 
+
+        ## Our duckie parameters
+        self.our_duckie_velocity = rospy.get_param("/duckiebots/our_duckie/velocity")
+        self.our_duckie_radius = rospy.get_param("/duckiebots/our_duckie/radius")
+        self.our_duckie_angle_change_limit = rospy.get_param("/duckiebots/our_duckie/angle_change_limit")
+        self.our_duckie_params = {"velocity": self.our_duckie_velocity, "radius": self.our_duckie_radius, "angle_change_limit": self.our_duckie_angle_change_limit}
+
+        #reward params
+        self.reward_right_lane = rospy.get_param("/reward/type_right_lane")
+        self.reward_wrong_lane = rospy.get_param("/reward/type_wrong_lane")
+        self.reward_partially_out = rospy.get_param("/reward/type_partially_out")
+        self.reward_lost = rospy.get_param("/reward/type_lost")
+        self.reward_params = {Ground.RIGHT_LANE: self.reward_right_lane, Ground.WRONG_LANE : self.reward_wrong_lane,  Ground.PARTIALLY_OUT_OF_ROAD : self.reward_partially_out,  Ground.LOST : self.reward_lost}
+
+
         #Publishers
         self.pub_agent_command = rospy.Publisher("/agent/command", AgentCommand, queue_size = 5)
 
@@ -36,7 +52,7 @@ class AgentNode(object):
         self.sub_observations = rospy.Subscriber("/sim/obs/observations", Observation, self.observation_cb)
         
         # Agent
-        self.agent = Agent(self.agent_params, self.sim_params)
+        self.agent = Agent(self.agent_params, self.sim_params, self.our_duckie_params, self.reward_params)
 
 
         rospy.loginfo("[AgentNode] Initialized.")

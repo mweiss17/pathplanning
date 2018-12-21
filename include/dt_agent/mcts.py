@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import scipy.stats as stats
+from dt_comm.enums import Ground
 
 costMat = np.zeros((100,100,100))
 
@@ -25,15 +26,48 @@ SCALAR=1/math.sqrt(2.0)
 #	prefer shorter straighter path
 #	keep track of x-closeness to goal as well as y
 
+
+
+#pass in goal
+#need a way to take in our own position relative to road
+# what is vel_resolution
+# how to access v
+
 class mctsPanner():
 
-    def __init__(self, predictor, dt):
+    def __init__(self, predictor, agent_params, sim_params, reward_params):
 
     	self.predictor = predictor
-    	self.dt = dt
+    	self.dt = sim_params["dt"]
     	self.v = v
 
-    def computePlan():
+		self.time_horizon = agent_params["time_horizon"]
+        self.road_width = sim_params["road_width"]
+        self.velocity = our_duckie_params["/duckiebots/our_duckie/velocity"]
+        self.radius = our_duckie_params["/duckiebots/our_duckie/radius"]
+        self.reward_params = reward_params
+        self.number_time_steps = int(self.time_horizon/self.dt)
+
+        #self.number_y_steps = int(self.y_horizon/self.y_resolution)
+        
+        # self.y_resolution = agent_params["y_resolution"]
+        # self.vel_resolution = agent_params["vel_resolution"]
+        # self.comp_time_mean = agent_params["comp_time_mean"]
+        # self.comp_time_std_dev = agent_params["comp_time_std_dev"]
+
+        # self.other_duckie_type = sim_params["other_duckie_type"]
+        # self.other_duckie_max_acceleration = sim_params["other_duckie_max_acceleration"]
+
+
+    # onroad = true/false
+    # lane = 1,-1 (1 is for the right(correct) lane)
+    # pos_wrt_midlane = +- position depending on which side
+    # need more info about lane widths, radius etc
+    def computePlan(goal):
+
+    	#might want to call predict function first where it populates the probability DS
+
+    	self.goal = goal
     	levels = 3
 		current_node = Node(State())
 		for l in range(levels):
@@ -46,7 +80,7 @@ class mctsPanner():
 	
 
 	def bestPath(self, node):
-		while node is not None:					## or replace with another terminal condition 
+		while node is not None:		 
 			print("Best Child: %s"%node.state)
 			node = self.BESTCHILD(node, 0):
 
@@ -57,7 +91,7 @@ class mctsPanner():
 				rospy.loginfo("simulation: %d"%iter)
 				rospy.loginfo(root)
 			front = self.TREEPOLICY(root)
-			reward = self.DEFAULTPOLICY(front.state) 
+			reward = self.GETREWARD(front.state) 
 			self.BACKUP(front,reward)
 		return self.BESTCHILD(root,0)
 
@@ -103,10 +137,17 @@ class mctsPanner():
 			return None
 		return random.choice(bestchildren)
 
-	def DEFAULTPOLICY(self,state):
-		while state.terminal() == False:
-			state = self.next_state(state)
-		return state.reward()  
+	def get_collision_cost(self):
+		collsion_cost = self.predictor.get_probability()
+		return collsion_cost
+
+	def GETREWARD(self,state):		
+		# while state.terminal() == False:
+		# 	state = self.next_state(state)
+		ground_type = self.check_ground(state)
+		ground_reward = reward_params[ground_type]
+		reward = ground_reward + self.get_collision_cost()
+		return reward 
 
 	def BACKUP(self, node,reward):
 	    while node != None:
@@ -123,9 +164,20 @@ class mctsPanner():
 		nextstate.cum_angle = state.cum_angle + nextmove
 		return nextstate
 
+    def check_ground(self, state):		
+        # Returns the type of ground for a duckie pose
+        x = state.x
+        if abs(x) <= 0.25*self.road_width:
+            return Ground.RIGHT_LANE
+        elif x < -0.25*self.road_width and x >= -0.75*self.road_width :
+            return Ground.WRONG_LANE
+        elif (x > -0.75*self.road_width - self.radius and x < -0.75*self.road_width) or (x > 0.25*self.road_width and x < 0.25*self.road_width + self.radius):
+            return Ground.PARTIALLY_OUT_OF_ROAD
+        else:
+            return Ground.LOST
 
 class State():
-	self.NUM_TURNS = 20	#pull from config instead
+	self.NUM_TURNS = 20	#pull time horison from config instead
 	self.MOVES = [-0.2, 0, 0.2]
 	self.cum_angle = 0   #cumulative angle from start
 	self.x = 0
@@ -137,42 +189,18 @@ class State():
 		self.moves = moves
 
 
-	#right and left sides fo the road differentiate
-	#compute position related reward : wrt center line, road, center of lane
-	def get_road_losses(self):
-		return 0
-
-	def get_collision_cost(self):
-		self.predictor.get_probability()
-		return 0
-
-	def get_goal_reward(self):
-		return 0
-
-	def pos_rel_lane(self):
-		return 0
-
-	def pos_rel_centerline(self):
-		return 0
-
-	def pos_rel_sidewalk(self):
-		#same side sidewalk penalise less
-		#make sure radius-constraints are satisfied
-		return 0
-
-	def pos_rel_goal(self):
-		return 0
-
 	def terminal(self):
 		if self.turn == 0:
 			return True
 		return False
 
-	def reward(self):
-		#this function needs to be populated depending on implementation and output of probability prediction module
-		#should basically take this x,y position -> convert to gridcell indices -> get reward at the index
-		r = self.get_road_losses() + self.get_collision_cost()
-		return r
+	# def reward(self, ground_type):
+	# 	#this function needs to be populated depending on implementation and output of probability prediction module
+	# 	#should basically take this x,y position -> convert to gridcell indices -> get reward at the index
+
+
+	# 	r = self.get_road_losses() + self.get_collision_cost()
+	# 	return r
 
 	def __hash__(self):
 		return int(hashlib.md5(str(self.moves).encode('utf-8')).hexdigest(),16)

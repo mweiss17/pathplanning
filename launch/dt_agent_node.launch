@@ -6,7 +6,8 @@
     <rosparam command="load" file="$(find pathplan_uncertainty)/config/communications.yaml"/>
     <rosparam command="load" file="$(find pathplan_uncertainty)/config/duckiebots.yaml"/>
     <rosparam command="load" file="$(find pathplan_uncertainty)/config/sim.yaml"/>
-    
+    <rosparam command="load" file="$(find pathplan_uncertainty)/config/rewards.yaml"/>   
+ 
     <node name="$(arg node_name)" pkg="$(arg pkg_name)" type="$(arg node_name).py" output="screen" clear_params="true">
 
     </node>
