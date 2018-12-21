@@ -1,6 +1,7 @@
 import logging
 import rospy
 import numpy as np
+import math
 
 import time
 
@@ -20,6 +21,7 @@ class PredictorDiscretePropagation(object):
         self.other_duckie_type = sim_params["other_duckie_type"]
         self.other_duckie_max_acceleration = sim_params["other_duckie_max_acceleration"]
         self.other_duckie_max_velocity = sim_params["other_duckie_max_velocity"]
+        self.other_duckie_min_velocity = sim_params["other_duckie_min_velocity"]
 
         # Build the velocity changes list
         self.max_vel_change = self.other_duckie_max_acceleration * self.dt          # How much can we change in a time step, in + or -
@@ -38,7 +40,7 @@ class PredictorDiscretePropagation(object):
     def predict(self, obs_msg):
         start = time.time()
         # Reading message
-        self.time = obs_msg.our_duckie_pose.time
+        self.time = round(obs_msg.our_duckie_pose.time, 2)
 
         other_duckie_x = obs_msg.other_duckie_pose.x
         other_duckie_y = obs_msg.other_duckie_pose.y
@@ -62,71 +64,60 @@ class PredictorDiscretePropagation(object):
         number_time_steps = int(self.time_horizon/self.dt)
         number_y_steps = int(self.y_horizon/self.y_resolution)
         self.prediction = {}
-        init_prob = (1, other_duckie_velocity)
+        init_prob = [1, other_duckie_velocity]
         self.add_in_prediction(self.time, other_duckie_y, init_prob)
+        prev_time = self.time
 
         # Propagating prediction (4rth degree for loop...)
 
         for k_t in range(1, number_time_steps):             # For each time step
-            prev_time = self.time + (k_t-1)*self.dt                  # Compute previous time 
-            cur_time = self.time + k_t*self.dt                       # Compute current time
-            #rospy.loginfo("[Agent][Predictor] Predicting for time: " + str(cur_time))
-
+            #rospy.loginfo("[Agent][Predictor] Time step: " + str(k_t))
+            cur_time = prev_time + self.dt                       # Compute current time
             for k_y in range(0, number_y_steps):                     # For each y step
                 y = k_y*self.y_resolution                               # Compute current y
                 for y_element in self.get_from_prediction(prev_time, y):     # For each element that existed at y in previous time
-                    el_prob = y_element[0]                                          # Probability of being there
+                    el_prob = y_element[0]                                   # Probability of being there previously
                     el_vel = y_element[1]                                           # With this velocity
                     for vel_change in self.vel_changes:                                 # For each possible change of velocity
                         next_vel = el_vel+vel_change                                        # Next velocity
-                        if next_vel < 0:                                                        # Checking limits
-                            next_vel = 0
+                        if next_vel < self.other_duckie_min_velocity:                                                        # Checking limits
+                            next_vel = self.other_duckie_min_velocity
                         elif next_vel > self.other_duckie_max_velocity:
                             next_vel = self.other_duckie_max_velocity
                         next_vel = ((1000 * next_vel)//1) /1000                             # Limiting the number of decimals of vel to 3
-                        next_y = y + next_vel*self.dt                                       # Next y
+                        next_y = y + next_vel*self.dt*math.cos(other_duckie_theta)          # Next y
                         next_prob = el_prob*self.prob_of_each_vel_change                    # Next probability
-                        prob_vel_duo = [next_prob, next_vel]                             
+                        prob_vel_duo = [next_prob, next_vel]              
                         self.add_in_prediction(cur_time, next_y, prob_vel_duo)            # Add in the prediction structure
-
+            prev_time = cur_time
 
         end = time.time()
         rospy.loginfo("[Agent][Predictor] Prediction time: " + str(end - start))
 
-
     def add_in_prediction(self, time, y, prob_vel_duo):
         if time >= self.time and time <= self.time + self.time_horizon and y < self.y_horizon and y >= 0: # Only do something if in the time and space limits
-            time_key = int(time*100)
-            #rospy.loginfo("[Agent][Predictor][add_in_prediction] Time key: " + str(time_key))
 
+            time_key = int(round(time,2)*100)
             if time_key not in self.prediction:                         # If time not in prediction yet, instantiate the new list at this time
-                #rospy.loginfo("[Agent][Predictor][add_in_prediction] Adding new time_key: " + str(time_key))
                 number_y_steps = int(self.y_horizon/self.y_resolution)+1
                 self.prediction[time_key] = [[] for x in range(number_y_steps)] 
 
-            #rospy.loginfo("[Agent][Predictor][add_in_prediction] self.prediction[" + str(time_key) + "]: " + str(self.prediction[time_key]))
-
-            y_index = int(y/self.y_resolution)                          # Compute index for y 
-            #rospy.loginfo("[Agent][Predictor][add_in_prediction] y: " + str(y))
-
-            #rospy.loginfo("[Agent][Predictor][add_in_prediction] y_index: " + str(y_index))
+            y_index = int(round(y/self.y_resolution))                   # Compute index for y 
 
             values_before = self.prediction[time_key][y_index]          # Get the that was there before
-            #rospy.loginfo("[Agent][Predictor][add_in_prediction] values_before: " + str(values_before))
 
             already_there = False
             for element in values_before:                               # Check for each element if
-                if abs(element[1] - prob_vel_duo[1]) <= 0.01:           # there is already a probability at this velocity
-                    element[0] += prob_vel_duo[0]                     # If so, add probability
+                if abs(element[1] - prob_vel_duo[1]) <= 0.02 and not already_there:           # there is already a probability at this velocity
+                    element[0] += prob_vel_duo[0]                       # If so, add probability
                     already_there = True
             if not already_there:                                       # Otherwise, add probability/velocity duo to the list
                 self.prediction[time_key][y_index].append(prob_vel_duo)
 
-
     def get_from_prediction(self, time, y):
-        time_key = int(time*100)
+        time_key = int(round(time,2)*100)
         if time_key in self.prediction and y <= self.y_horizon and y >= 0:
-            y_index = int(y/self.y_resolution)
+            y_index = int(round(y/self.y_resolution))
             return self.prediction[time_key][y_index]
         else:
             return []
@@ -136,28 +127,15 @@ class PredictorDiscretePropagation(object):
             rospy.loginfo("[Agent][Predictor] Trying to get probability for a time that has already passed: " + str(time))
             return 0
 
-        rospy.loginfo("[Agent][Predictor] Fetching probability at time: " + str(time) + "and at y: " + str(y))
-
-        time_key = int(time*100)
+        time_key = int(round(time,2)*100)
         time_key_temp = time_key
         while time_key_temp not in self.prediction and time_key - time_key_temp <= 10:
-            rospy.loginfo("[Agent][Predictor] Time key " + str(time_key) + " is NOT in the prediction list")
-            rospy.loginfo("[Agent][Predictor] Prediction list keys: " + str(self.prediction.keys()))
-            #rospy.loginfo("[Agent][Predictor] Prediction: " + str(self.prediction))
             time_key_temp = time_key_temp - 1
             if time_key_temp in self.prediction:
                 time_key = time_key_temp
 
-
         if time_key in self.prediction and y <= self.y_horizon and y >= 0:
-            y_index = int(y/self.y_resolution)
-
-            rospy.loginfo("[Agent][Predictor] Time key " + str(time_key) + " is in the prediction list")
-
-            rospy.loginfo("[Agent][Predictor] Prediction[time_key]: " + str(self.prediction[time_key]))
-            rospy.loginfo("[Agent][Predictor] y_index " + str(y_index))
-
-            rospy.loginfo("[Agent][Predictor] Prediction[time_key][y_index]: " + str(self.prediction[time_key][y_index]))
+            y_index = int(round(y/self.y_resolution))
             list_of_prob_vel_duos = self.prediction[time_key][y_index]
             probability = 0
             for prob_vel_duo in list_of_prob_vel_duos:

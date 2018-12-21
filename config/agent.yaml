@@ -1,8 +1,8 @@
 agent:
   planner:
     time_horizon: 10.0 # seconds
-    y_resolution: 0.3
-    y_horizon: 10.0 #m
+    y_resolution: 0.1
+    y_horizon: 11.0 #m
     vel_resolution: 0.2
   computation_time:
     mean: 10
