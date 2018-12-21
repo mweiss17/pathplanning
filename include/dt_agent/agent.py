@@ -3,6 +3,7 @@ import rospy
 from dt_comm.enums import Ground, SafetyStatus
 from dt_agent.planner import RRT_Dubins
 from .predictor import PredictorDiscretePropagation
+import numpy as np
 #from mcts import mctsPlanner
 
 class Agent(object):
@@ -11,6 +12,8 @@ class Agent(object):
     speed_of_light = 1
 
     def __init__(self, agent_params, sim_params):
+
+        # Params
 
         self.time_horizon = agent_params["time_horizon"]
         self.y_resolution = agent_params["y_resolution"]
@@ -24,10 +27,14 @@ class Agent(object):
         self.other_duckie_max_acceleration = sim_params["other_duckie_max_acceleration"]
 
 
-        # Params
 
-
+        # Objects
         self.predictor = PredictorDiscretePropagation(agent_params, sim_params)
+
+
+
+        
+
         #init mcts planner class 
         #self.planner = mctsPlanner(predictor, self.dt)  ##needs to have access to predictor
 
@@ -49,10 +56,20 @@ class Agent(object):
         #prob = self.predictor.get_collision_probability(-0.25, 1, 20)
         #rospy.loginfo("Probability of collision at position -0.25, 1 at time 20 is: " + str (prob))
 
-        plan = [0, 0, 0, 0, 0]
-        timesteps = 5
+        plan = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        timesteps = self.draw_computation_time_steps()
+
+
 
         return plan, timesteps
+
+    def draw_computation_time_steps(self):
+        number_steps = int(round(np.random.normal(self.comp_time_mean, self.comp_time_std_dev)))
+        if number_steps < 1:
+            number_steps = 1
+        if number_steps > self.comp_time_mean + 3*self.comp_time_std_dev:
+            number_steps = int(round(self.comp_time_mean + 3*self.comp_time_std_dev))
+        return number_steps
 
         #orientation_seq = self.ourPlanner.update_plan(other_duckie_obs,[self.other_bot.radius]) #note: other_duckie_obs here is a list where we have observed positions of each of the duckeibots other than us
         

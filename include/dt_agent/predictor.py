@@ -96,7 +96,7 @@ class PredictorDiscretePropagation(object):
 
         end = time.time()
         #rospy.loginfo("[Agent][Predictor] Prediction time: " + str(end - start))
-        rospy.loginfo("[Agent][Predictor] Prediction made")
+        #rospy.loginfo("[Agent][Predictor] Prediction made")
 
 
     def add_in_prediction(self, time, y, prob_vel_duo):
