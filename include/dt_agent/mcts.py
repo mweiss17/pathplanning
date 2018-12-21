@@ -25,8 +25,13 @@ logger = logging.getLogger('MyLogger')
 
 #todo:
 #store accumulated orientations/ global position
-#time component, index and check with indexed cells
+#call P(x,y,t) function to get collsion prob
 #gradually decrease exploitation
+#closeness to goal
+
+#don't surpass goal
+#prefer shorter straighter path
+#x-xloseness to goal as well as y
 
 class State():
 	self.NUM_TURNS = 20	#pull from config instead
@@ -43,6 +48,31 @@ class State():
 		nextstate = State(self.moves+[nextmove],self.turn-1) 
 		return nextstate
 
+	#right and left sides fo the road differentiate
+	#compute position related reward : wrt center line, road, center of lane
+	def get_road_losses():
+		return 0
+
+	def get_collision_cost():
+		return 0
+
+	def get_goal_reward():
+		return 0
+
+	def pos_rel_lane():
+		return 0
+
+	def pos_rel_centerline():
+		return 0
+
+	def pos_rel_sidewalk():
+		#same side sidewalk penalise less
+		#make sure radius-constraints are satisfied
+		return 0
+
+	def pos_rel_goal():
+		return 0
+
 	def terminal(self):
 		if self.turn == 0:
 			return True
@@ -53,9 +83,6 @@ class State():
 		#should basically take this x,y position -> convert to gridcell indices -> get reward at the index
 		r = 0
 		return r
-
-	def snap():
-		pass
 
 	def __hash__(self):
 		return int(hashlib.md5(str(self.moves).encode('utf-8')).hexdigest(),16)
@@ -155,19 +182,19 @@ def BACKUP(node,reward):
 	return
 
 
-parser.add_argument('--num_sims', action="store", required=True, type=int)
-parser.add_argument('--levels', action="store", required=True, type=int, choices=range(State.NUM_TURNS))
+# parser.add_argument('--num_sims', action="store", required=True, type=int)
+# parser.add_argument('--levels', action="store", required=True, type=int, choices=range(State.NUM_TURNS))
 
-current_node=Node(State())
-for l in range(args.levels):
-	current_node=UCTSEARCH(args.num_sims/(l+1),current_node)
-	print("level %d"%l)
-	print("Num Children: %d"%len(current_node.children))
-	for i,c in enumerate(current_node.children):
-		print(i,c)
-	print("Best Child: %s"%current_node.state)
+# current_node=Node(State())
+# for l in range(args.levels):
+# 	current_node=UCTSEARCH(args.num_sims/(l+1),current_node)
+# 	print("level %d"%l)
+# 	print("Num Children: %d"%len(current_node.children))
+# 	for i,c in enumerate(current_node.children):
+# 		print(i,c)
+# 	print("Best Child: %s"%current_node.state)
 	
-	print("--------------------------------")	
+# 	print("--------------------------------")	
 			
 	
 
