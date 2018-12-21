@@ -44,8 +44,8 @@ class Agent(object):
 
         self.predictor.predict(other_duckie_obs)
 
-        prob = self.predictor.get_probability(5, 10)
-        rospy.loginfo("Probability of being at position 7 at time 5 is: " + str (prob))
+        #prob = self.predictor.get_probability(5, 10)
+        #rospy.loginfo("Probability of being at position 7 at time 5 is: " + str (prob))
 
         plan = [0, 0, 0, 0, 0]
         timesteps = 5

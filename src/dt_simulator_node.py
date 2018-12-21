@@ -55,8 +55,9 @@ class SimNode(object):
         self.other_duckie_angle_change_limit = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/angle_change_limit")
         self.other_duckie_max_acceleration = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/max_acceleration")
         self.other_duckie_max_velocity = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/max_velocity")
+        self.other_duckie_min_velocity = rospy.get_param("/duckiebots/" + self.other_duckie_type + "/min_velocity")
 
-        self.other_duckie_params = {"start_pose": self.other_duckie_start_pose, "velocity": self.other_duckie_velocity, "radius": self.other_duckie_radius, "type": self.other_duckie_type, "angle_change_limit": self.other_duckie_angle_change_limit, "max_acceleration": self.other_duckie_max_acceleration, "max_velocity": self.other_duckie_max_velocity}
+        self.other_duckie_params = {"start_pose": self.other_duckie_start_pose, "velocity": self.other_duckie_velocity, "radius": self.other_duckie_radius, "type": self.other_duckie_type, "angle_change_limit": self.other_duckie_angle_change_limit, "max_acceleration": self.other_duckie_max_acceleration, "max_velocity": self.other_duckie_max_velocity, "min_velocity": self.other_duckie_min_velocity}
       
         # World
         self.world = World(self.sim_parameters, self.world_params, self.our_duckie_params, self.other_duckie_params)
