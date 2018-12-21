@@ -3,7 +3,7 @@ import rospy
 from dt_comm.enums import Ground, SafetyStatus
 from dt_agent.planner import RRT_Dubins
 from .predictor import PredictorDiscretePropagation
-from mcts import mctsPlanner
+#from mcts import mctsPlanner
 
 class Agent(object):
     num_lanes = 2
@@ -27,9 +27,9 @@ class Agent(object):
         # Params
 
 
-        predictor = PredictorDiscretePropagation(agent_params, sim_params)
+        self.predictor = PredictorDiscretePropagation(agent_params, sim_params)
         #init mcts planner class 
-        self.planner = mctsPlanner(predictor, self.dt)  ##needs to have access to predictor
+        #self.planner = mctsPlanner(predictor, self.dt)  ##needs to have access to predictor
 
         #the dubins rrt method will compute rrt with an added constraint -> (min turning radius(so that unrealistic/jerky turns aren't used), 
         #and that bot can go only fwd)
@@ -46,8 +46,8 @@ class Agent(object):
 
         self.predictor.predict(other_duckie_obs)  ##change
 
-        #prob = self.predictor.get_probability(5, 10)
-        #rospy.loginfo("Probability of being at position 7 at time 5 is: " + str (prob))
+        #prob = self.predictor.get_collision_probability(-0.25, 1, 20)
+        #rospy.loginfo("Probability of collision at position -0.25, 1 at time 20 is: " + str (prob))
 
         plan = [0, 0, 0, 0, 0]
         timesteps = 5

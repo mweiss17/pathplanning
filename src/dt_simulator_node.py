@@ -94,7 +94,7 @@ class SimNode(object):
 
     def publish_obs(self):
         # Publishing the observations
-        rospy.loginfo("[Sim] Publishing observations")
+        #rospy.loginfo("[Sim] Publishing observations")
 
         time, ourd_p, ourd_v, _, _, othd_p, othd_v = self.world.get_state()
 
@@ -125,7 +125,7 @@ class SimNode(object):
         obs_msg.other_duckie_radius = self.other_duckie_radius
         self.pub_observations.publish(obs_msg)
 
-        rospy.loginfo("[Sim] Published observations")
+        #rospy.loginfo("[Sim] Published observations")
 
     def publish_state(self):
         # Publishing the state
