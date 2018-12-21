@@ -1,7 +1,7 @@
 # Path planning under uncertainty - DuckieTown 2018 UdeM
 
 ## Installation
-Prerequisites: ROS Kinetic or Melodic, Python 2.7
+Prerequisites: ROS Kinetic, Lunar or Melodic, Python 2.7
 
 In `catkin_ws`, clone the package, then:
 
@@ -32,7 +32,6 @@ Can be launched using:
 ```$ roslaunch pathplan_uncertainty dt_simulator_node.launch```
 
 
-
 ### Test
 Can be tested using rqt to simulate an agent. Example here:
 
@@ -46,25 +45,25 @@ Develop the topic and give a value of 5 to `compute_time_steps` (for example) an
 Check the checkbox to start publishing.
 The simulation should run with our DuckieBot having a 5 time-step straight trajectory.
 
-### More details about communication
+### Communication
 
 #### Listening to this topic:
   * ```/agent/command```, including:
-    * ```computation_time_steps```: _k_ time steps the agent will take to compute the next trajectory. ..
+    * ```computation_time_steps```: _k_ time steps the agent will take to compute the next trajectory. 
 
-    * ```orientation_seq```: trajectory to be executed in the meantime (only orientation, in radians) ..
+    * ```orientation_seq```: trajectory to be executed in the meantime (only orientation, in radians).
 
-Once the simulator receives a message on this topic, it publishes the observation of current state, and starts executing the trajectory over the _k_ time steps.
+Once the Simulator receives a message on this topic, it publishes the observation of current state, and starts executing the trajectory over the _k_ time steps.
 
 
-#### Publishing these topics:
+#### Publishing on these topics:
 This topic should be listened to by the Agent:
 
-  * ```/sim/obs/observations``` is the concatenation of both Duckies' poses, plus their velocities and their radius. It is sent **after the _k_ time steps have been executed**.
+  * ```/sim/obs/observations``` includes both Duckies' poses, their velocities, and their radii. It is sent **after the _k_ time steps have been executed**.
 
 This topic should be listened to by the Manager and is published **at every time step**:
 
-  * ```/sim/gt/world_state``` contains the time, reward, both Duckies' poses, our Duckie's safety status and the type of ground on which our Duckie is.
+  * ```/sim/gt/world_state``` contains the time, both Duckies' poses, our Duckie's safety status and the type of ground on which our Duckie is.
 
 For debugging purposes, the node also publishes these topics **at every time step**:
 
@@ -82,19 +81,61 @@ For visualization purposes, the node also publishes this topic:
 
 ```/sim/road_image``` is an image showing the current state (more details in the *Seeing what is happening* section)
 
-### Services
+#### Service
 The ```get_ground_type``` service can be called to return the ground type on which a robot with a given position and radius would be.
 
 
 
 ## Manager Node
 ### Purpose
-The manager node allows to track the evolution of the simulation. It records the state at every time step and computes the score.
+The Manager tracks the evolution of the simulation. It records the state at every time step and computes the score.
 
+### Launch
+Can be launched using:
+
+```$ roslaunch pathplan_uncertainty dt_manager_node.launch```
+
+### Communication
+
+#### Listening to this topic:
+  * `/sim/gt/world_state` contains the time, both Duckies' poses, our Duckie's safety status and the type of ground on which our Duckie is.
+
+Once the Manager receives this message, it records the data and computes the reward and score of the Duckiebot. Then, it publishes the score.
+
+#### Publishing on this topic:
+  * `/manager/current_score` is the current score of the Duckiebot, published at every time step.
+
+### Service
+The `/manager/get_manager_records` service can be called to return the whole record of states.
 
 
 ## Agent Node
-TO DO
+### Purpose
+The Agent gives the commands to our Duckiebot, depending on the observations it receives from the simulator. It should take some time to compute the commands. Because this whole program is working in time steps and not in real time, the agent therefore it simulates its computation time in time steps.
+
+### Launch
+Can be launched using:
+``` $ roslaunch pathplan_uncertainty dt_agent_node.launch```
+
+### Communications
+
+#### Listening to this topic:
+  * `/sim/obs/observations` : includes both Duckies' poses, their velocities, and their radii.
+
+Once the Agent receives this message, it computes the best trajectory, simulates its computation time, and publishes them.
+
+#### Publishing on this topic:
+  * `/agent/command`, including:
+    * `computation_time_steps`: _k_ time steps the agent will take to compute the next trajectory. 
+
+    * `orientation_seq`: trajectory to be executed in the meantime (only orientation, in radians).
+
+### Computation of the trajectory
+The computation of the best trajectory is done in two parts:
+
+1. Using the observations and a known movement model of the other Duckiebot, the Agent predicts the probability of collision at each time step for any x, y position of our Duckiebot.
+2. Using Monte Carlo Tree Search with orientation change as the unique parameter, the agent finds the path with the highest reward (or lowest negative reward)
+
 
 ## Seeing what is happening
 
@@ -121,12 +162,12 @@ In `duckiebots.yaml`, you will find, for each Duckiebot type:
   * `max_velocity` and `min_velocity` : the maximal and minimal velocities of the Duckiebot, in m/s
 
 In `rewards.yaml`, you will find the rewards given at each time step:
-  * status_fine : while there is no collision
-  * status_collision : when there is a collision
-  * type_right_lane: when the Duckiebot is in the right lane
-  * type_wrong_lane: when the Duckiebot is in the wrong lane
-  * type_partially_out: when the Duckiebot is partially out of the road
-  * type_lost: when the Duckiebot is completely out of the road
+  * `status_fine` : while there is no collision
+  * `status_collision` : when there is a collision
+  * `type_right_lane`: when the Duckiebot is in the right lane
+  * `type_wrong_lane`: when the Duckiebot is in the wrong lane
+  * `type_partially_out`: when the Duckiebot is partially out of the road
+  * `type_lost`: when the Duckiebot is completely out of the road
 
 In `communications.yaml`, you will find the communication protocole used by the nodes to exchange information on the safety status and the ground type on which the Duckiebot is.
 
@@ -136,4 +177,7 @@ In `agent.yaml`, you will find the parameters used by the agent to predict, plan
     * `y_resolution` : resolution in meters of the discretization of the y dimension for the predictor
     * `y_horizon` : distance in meters from the origin until which the predictor runs
     * `vel_resolution` : resolution in m/s of the velocity change discretization. For example, with `dt` = 0.2s, and an uniformly distributed acceleration between -`max_acceleration` and + `max_acceleration` with `max_acceleration` = 2 m/s^2, the predictor will at each time step consider the possible velocity changes being of [-0.4, -0.2, 0, 0.2, 0.4] m/s, each of them with a 0.2 probability.
+  * `computation_time` :
+    * `mean` : average number of time steps taken to simulate the computation time
+    * `std_dev` : standard deviation in time steps of the simulated computation time 
 
