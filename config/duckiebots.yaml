@@ -15,9 +15,9 @@ duckiebots:
     max_velocity: 1
     min_velocity: 0.1
   constant_speed_duckie:
-    start_pose: [0.0, 5.0, 0] # [x,y, theta]
-    velocity: 0.25
-    radius: 0.25
+    start_pose: [-0.5, 10.0, 3.14] # [x,y, theta]
+    velocity: 0.4
+    radius: 0.6
     type: "slow_duckie" 
     angle_change_limit: 0.2 # rad
     max_acceleration: 0

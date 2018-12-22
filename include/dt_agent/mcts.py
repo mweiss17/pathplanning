@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#original: https://github.com/haroldsultan/MCTS/blob/master/mcts.py
 import math
 import hashlib
 import rospy
@@ -13,16 +14,8 @@ import time
 
 costMat = np.zeros((100,100,100))
 
-#MCTS scalar.  Larger scalar will increase exploitation, smaller will increase exploration. 
-SCALAR=3/math.sqrt(2.0)  			
-
-#gradually decrease exploitation
-
-#to make sure:
-#	don't surpass goal
-#	prefer shorter straighter path
-#	keep track of x-closeness to goal as well as y
-
+#MCTS scalar.  Larger scalar will increase exploitation, smaller will increase exploration
+SCALAR=1.5/math.sqrt(2.0)  			
 
 class mctsPlanner():
 
@@ -41,32 +34,10 @@ class mctsPlanner():
 		self.number_time_steps = 20
 
 
-        #self.number_y_steps = int(self.y_horizon/self.y_resolution)
-        
-        # self.y_resolution = agent_params["y_resolution"]
-        # self.vel_resolution = agent_params["vel_resolution"]
-        # self.comp_time_mean = agent_params["comp_time_mean"]
-        # self.comp_time_std_dev = agent_params["comp_time_std_dev"]
-
-        # self.other_duckie_type = sim_params["other_duckie_type"]
-        # self.other_duckie_max_acceleration = sim_params["other_duckie_max_acceleration"]
-
-
 	def computePlan(self, goal, obs_msg):
-
-		# print('goal')
-		# print(goal)
-		# print('global time x y')
-		# print(obs_msg.our_duckie_pose.time)
-
-		# print(obs_msg.our_duckie_pose.x)
-		# print(obs_msg.our_duckie_pose.y)
-		# print('.........................................................')
 		self.goal = goal
 		levels = 1
 		current_node = Node(State(turn = self.number_time_steps))
-
-		# print('duckie pose x and y')
 
 		current_node.state.x = obs_msg.our_duckie_pose.x
 		current_node.state.y = obs_msg.our_duckie_pose.y
@@ -76,14 +47,10 @@ class mctsPlanner():
 		self.starty = current_node.state.y
 		self.start_time = round(obs_msg.our_duckie_pose.time, 2)
 
-		# print('start x and y')
-		# print(current_node.state.x)
-		# print(current_node.state.y)
-		# print('.........................................................')
 		self.start_theta = current_node.state.cum_angle
 
 		for l in range(levels):
-			current_node=self.UCTSEARCH(5000,current_node)
+			current_node=self.UCTSEARCH(2500,current_node)
 		return self.bestPath(current_node)
 
 	def bestPath(self, node):
@@ -92,23 +59,28 @@ class mctsPlanner():
 		moves = []
 		collision = []
 		rewards = []
+		visits = []
+		lost_candidates = []
+		lost_can_collisions = []
 		while node is not None:
 			path.append([node.state.x, node.state.y]) 
 			angles.append(node.state.cum_angle)
 			collision.append(node.state.collision_cost)
-			rewards.append(node.reward)
+			rewards.append(node.reward/(node.visits *1.0) )
 			moves = node.state.moves
+			visits.append(node.visits)
+			node, candidates, lost_collisions = self.BESTCHILD_FINAL(node, 0)
+			lost_candidates.append(candidates)	
+			lost_can_collisions.append(lost_collisions)
 
-			node = self.BESTCHILD(node, 0)
-		return path, angles, moves, collision, rewards
+		return path, angles, moves, collision, rewards, visits, lost_candidates, lost_can_collisions
 
 	def UCTSEARCH(self, budget, root):
 
 		for iter in range(int(budget)):
-			# print('iter '+str(iter))
-			if iter%10 == 9999:
-				rospy.loginfo("simulation: %d"%iter)
-				rospy.loginfo(root)
+			# if iter%100 == 9:
+			# 	print('iter')
+				# rospy.loginfo(root)
 			front = self.TREEPOLICY(root)
 
 			reward = self.GETREWARD(front.state) 
@@ -119,7 +91,6 @@ class mctsPlanner():
 	def TREEPOLICY(self, node):
 		#a hack to force 'exploitation' in a game where there are many options, and you may never/not want to fully expand first
 		while node.state.terminal() == False:
-			# print('while')
 			if len(node.children) == 0:
 				return self.EXPAND(node)
 			elif random.uniform(0,1)<.5:
@@ -132,10 +103,6 @@ class mctsPlanner():
 				else:
 					# print('fully expanded so best child')
 					node = self.BESTCHILD(node, SCALAR)
-
-		# print('broke out of while loop with node with moves')
-		# print(node.state.moves)
-		# print(len(node.children))
 		return node
 
 
@@ -151,12 +118,37 @@ class mctsPlanner():
 
 		return node.children[-1]
 
+	def BESTCHILD_FINAL(self, node, scalar):
+		bestscore = -9999999
+		bestchildren = []
+		candidate_rewards = []
+		lost_can_collisions = []
+		for c in node.children:
+			exploit = c.reward/c.visits  
+			candidate_rewards.append(exploit)
+			lost_can_collisions.append(c.state.collision_cost)
+			explore = math.sqrt(2.0*math.log(node.visits)/float(c.visits))	
+
+			score = exploit+scalar*explore
+			if score == bestscore:
+				bestchildren.append(c)
+			if score>bestscore:
+
+				bestchildren = [c]
+				bestscore = score
+		# print('length of bestchildren array : '+str(len(bestchildren)))
+		if len(bestchildren) == 0:
+			# print('children count '+str(len(node.children)))
+			# rospy.loginfo("no best child found, probably fatal")
+			return None, [], []
+		return random.choice(bestchildren), candidate_rewards, lost_can_collisions
+
 	def BESTCHILD(self, node, scalar):
 		bestscore = -9999999
 		bestchildren = []
 		for c in node.children:
 
-			exploit = c.reward/c.visits  
+			exploit = c.reward/(c.visits *1.0) 
 			explore = math.sqrt(2.0*math.log(node.visits)/float(c.visits))	
 
 			score = exploit+scalar*explore
@@ -186,7 +178,7 @@ class mctsPlanner():
 
 	def get_collision_cost(self, state):
 		collision_cost = self.predictor.get_collision_probability(state.x, state.y, self.start_time+((self.number_time_steps - state.turn)*self.dt), self.radius)
-		return collision_cost*(-1000)
+		return collision_cost*(-5000)
 
 	def GETREWARD(self, state):		
 
@@ -208,7 +200,7 @@ class mctsPlanner():
 		return
 
 	def next_state(self, state, moves =[]):
-		if(random.uniform(0,1)<.2):
+		if(random.uniform(0,1)<.1):
 			nextmove = 0
 		else:
 			if(len(moves)!=0):
@@ -246,7 +238,7 @@ class State():
 		self.turn = turn
 		self.moves = moves
 		self.MOVES = [-0.2, 0,  0.2]
-		self.cum_angle = 0   #cumulative angle from start
+		self.cum_angle = 0 
 		self.x = 0
 		self.y = 0
 		self.num_moves = len(self.MOVES)
