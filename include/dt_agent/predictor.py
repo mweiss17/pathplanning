@@ -100,7 +100,7 @@ class PredictorDiscretePropagation(object):
 
 
     def add_in_prediction(self, time, y, prob_vel_duo):
-        if time >= self.time and time <= self.time + self.time_horizon and y < self.y_horizon and y >= 0: # Only do something if in the time and space limits
+        if time >= self.time and time <= self.time + self.time_horizon and y < self.y_horizon-0.1 and y >= 0: # Only do something if in the time and space limits
 
             time_key = int(round(time,2)*100)
             if time_key not in self.prediction:                         # If time not in prediction yet, instantiate the new list at this time
@@ -178,7 +178,7 @@ class PredictorDiscretePropagation(object):
             y = k_y*self.y_resolution                               
             x = -self.road_width/4                                  # Other duckie always in the middle of the road
             sq_distance_from_pos = (y_pos-y)**2 + (x_pos-x)**2      
-            if sq_distance_from_pos <= (self.other_duckie_radius + our_duckie_radius)**2:
+            if sq_distance_from_pos <= (self.other_duckie_radius + our_duckie_radius + self.y_resolution)**2:
                 y_index = int(round(y/self.y_resolution))
                 for prob_vel_duo in prediction_at_time[y_index]:
                     probability += prob_vel_duo[0]
