@@ -3,7 +3,7 @@
 ## Installation
 Prerequisites: ROS Kinetic, Lunar or Melodic, Python 2.7
 
-In `catkin_ws`, clone the package, then:
+In `catkin_ws/src`, clone the package, then:
 
 ```$ catkin_make```
 
