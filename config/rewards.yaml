@@ -1,7 +1,7 @@
 reward:
   status_fine: 1
   status_collision: -1000
-  type_right_lane: 1
-  type_wrong_lane: -1
+  type_right_lane: -0.5
+  type_wrong_lane: -3
   type_partially_out: -3
   type_lost: -1000

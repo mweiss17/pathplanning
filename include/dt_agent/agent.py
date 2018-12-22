@@ -62,18 +62,25 @@ class Agent(object):
         plan = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         timesteps = self.draw_computation_time_steps()
         goal = [0, obs_msg.our_duckie_pose.y + 8]
-        path, angles, moves = self.planner.computePlan(goal, obs_msg)
+        path, angles, moves, collision, rewards = self.planner.computePlan(goal, obs_msg)
 
+        print('other duckie pose')
+        print(str(obs_msg.other_duckie_pose.x) + '  ...  ' +str(obs_msg.other_duckie_pose.y)) 
 
-        print('angles')
-        print(angles)
-        print('moves')
+        # print('angles')
+        # print(angles)
+        print('moves:')
         print(moves)
-        print('path')
+        print('collision costs:')
+        print(collision)
+        print('path:')
         print(path)
-
+        print('rewards:')
+        print(rewards)
         plan = moves
-
+        print('radii: us and other duckie')
+        print(self.our_duckie_radius)
+        print(obs_msg.other_duckie_radius)
         return plan, timesteps
 
     def draw_computation_time_steps(self):
