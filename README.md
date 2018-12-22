@@ -14,23 +14,22 @@ And finally, if you are on Linux, you may need set the python files as executabl
 ```$ sudo chmod +x dt_*```
 
 ## Launching full demo
-The whole demo can be launched using: 
+The whole demo can be launched via the terminal: 
 
-```$ roslaunch pathplan_uncertainty dt_pathplan.launch```
+```roslaunch pathplan_uncertainty dt_pathplan.launch```
 
-It launches together the simulator, the manager and the agent nodes.
+It launches the simulator, the manager, and the agent nodes together.
 
 
 ## Simulator node
 
 ### Purpose
-The simulator node allows to simulate the movement of two Duckiebots: our Duckiebot (controlled by the agent node) and the other Duckiebot (controlled by a pretermined policy). It allows to follow the position, orientation, safety status (collision?) and the type of ground over which our Duckiebot is currently (right lane, left lane, partially out of the road, completely out of the road).
+The simulator node allows to simulate the movement of two Duckiebots: our Duckiebot (controlled by the agent node) and the other Duckiebot (controlled by a pre-determined stochastic policy). It has perfect information about our current position, orientation, safety status (i.e. was there a collision) and lane position (right lane, left lane, partially out of the road, completely out of the road). N.B. that we use lane position and ground_type synonymously.
 
 ### Launch
-Can be launched using:
+The simulator ros node can be launched on its own with this command:
 
-```$ roslaunch pathplan_uncertainty dt_simulator_node.launch```
-
+```roslaunch pathplan_uncertainty dt_simulator_node.launch```
 
 ### Test
 Can be tested using rqt to simulate an agent. Example here:
@@ -53,7 +52,7 @@ The simulation should run with our DuckieBot having a 5 time-step straight traje
 
     * ```orientation_seq```: trajectory to be executed in the meantime (only orientation, in radians).
 
-Once the Simulator receives a message on this topic, it publishes the observation of current state, and starts executing the trajectory over the _k_ time steps.
+Once the Simulator receives a message on this topic, it publishes an observation and starts executing the trajectory over the _k_ time steps.
 
 
 #### Publishing on these topics:
@@ -111,7 +110,7 @@ The `/manager/get_manager_records` service can be called to return the whole rec
 
 ## Agent Node
 ### Purpose
-The Agent gives the commands to our Duckiebot, depending on the observations it receives from the simulator. It should take some time to compute the commands. Because this whole program is working in time steps and not in real time, the agent therefore it simulates its computation time in time steps.
+The Agent receives observations from the simulator and controls the actions of our Duckiebot. Because this whole program works in discrete time steps, the Agent reports its computation time to the Simulator and incurs a lag before updated path plans take effect on our duckiebot.
 
 ### Launch
 Can be launched using:
