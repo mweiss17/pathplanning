@@ -142,15 +142,16 @@ class mctsPlanner():
 		bestscore = -9999999
 		bestchildren = []
 		for c in node.children:
-
+			turn = node.state.turn
 			exploit = c.reward/(c.visits *1.0) 
 			explore = math.sqrt(2.0*math.log(node.visits)/float(c.visits))	
 
-			score = exploit+scalar*explore
+			discounted_scalar = scalar * (0.95**turn)
+			discounted_scalar = max(discounted_scalar, 1.2)
+			score = exploit + discounted_scalar*explore
 			if score == bestscore:
 				bestchildren.append(c)
 			if score>bestscore:
-
 				bestchildren = [c]
 				bestscore = score
 		if len(bestchildren) == 0:

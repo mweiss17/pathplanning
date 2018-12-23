@@ -8,6 +8,6 @@ agent:
     mean: 2
     std_dev: 0.1
   mcts:
-    scalar: 1.414
+    scalar: 2.5
     budget: 5300
     time_steps: 50
