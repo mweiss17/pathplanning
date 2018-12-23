@@ -225,11 +225,11 @@ class mctsPlanner():
 	def check_ground(self, state):		
 	    # Returns the type of ground for a duckie pose
 	    x = state.x
-	    if abs(x) <= 0.25*self.road_width:
+	    if abs(x) <= 0.25*self.road_width - self.radius:
 	        return Ground.RIGHT_LANE
-	    elif x < -0.25*self.road_width and x >= -0.75*self.road_width :
+	    elif x < -0.25*self.road_width + self.radius and x >= -0.75*self.road_width + self.radius :
 	        return Ground.WRONG_LANE
-	    elif (x > -0.75*self.road_width - self.radius and x < -0.75*self.road_width) or (x > 0.25*self.road_width and x < 0.25*self.road_width + self.radius):
+	    elif (x > -0.75*self.road_width - self.radius and x < -0.75*self.road_width + self.radius) or (x > 0.25*self.road_width - self.radius and x < 0.25*self.road_width + self.radius):
 	        return Ground.PARTIALLY_OUT_OF_ROAD
 	    else:
 	        return Ground.LOST
