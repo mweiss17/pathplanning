@@ -1,7 +1,6 @@
 import logging
 import rospy
 from dt_comm.enums import Ground, SafetyStatus
-from dt_agent.planner import RRT_Dubins
 from .predictor import PredictorDiscretePropagation
 import numpy as np
 from mcts import mctsPlanner
