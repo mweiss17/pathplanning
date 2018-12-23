@@ -50,7 +50,7 @@ class mctsPlanner():
 		self.start_theta = current_node.state.cum_angle
 
 		for l in range(levels):
-			current_node=self.UCTSEARCH(2000,current_node)
+			current_node=self.UCTSEARCH(2500,current_node)
 		return self.bestPath(current_node)
 
 	def bestPath(self, node):
@@ -160,7 +160,7 @@ class mctsPlanner():
 
 	def centerlane_incentive(self, state):
 		incentive = abs(state.x)
-		return incentive
+		return -incentive
 
 
 	def forward_incentive(self, state):

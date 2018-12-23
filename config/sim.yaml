@@ -11,6 +11,6 @@ sim:
   world:
     road:
       width: 2.0
-  other_duckie_type: "constant_speed_duckie" # Available: "constant_speed_duckie", "unstable_speed_duckie"
+  other_duckie_type: "unstable_speed_duckie" # Available: "constant_speed_duckie", "unstable_speed_duckie"
 
 
