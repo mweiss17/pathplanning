@@ -100,7 +100,7 @@ class PredictorDiscretePropagation(object):
 
 
     def add_in_prediction(self, time, y, prob_vel_duo):
-        if time >= self.time and time <= self.time + self.time_horizon and y < self.y_horizon and y >= 0: # Only do something if in the time and space limits
+        if time >= self.time and time <= self.time + self.time_horizon and y < self.y_horizon-0.1 and y >= 0: # Only do something if in the time and space limits
 
             time_key = int(round(time,2)*100)
             if time_key not in self.prediction:                         # If time not in prediction yet, instantiate the new list at this time

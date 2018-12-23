@@ -57,11 +57,11 @@ class World(object):
     def check_ground(self, pose, radius):
         # Returns the type of ground for a duckie pose
         x = pose[0]
-        if abs(x) <= 0.25*self.road_width:
+        if abs(x) <= 0.25*self.road_width - radius:
             return Ground.RIGHT_LANE
-        elif x < -0.25*self.road_width and x >= -0.75*self.road_width :
+        elif x < -0.25*self.road_width + radius and x >= -0.75*self.road_width + radius:
             return Ground.WRONG_LANE
-        elif (x > -0.75*self.road_width - radius and x < -0.75*self.road_width) or (x > 0.25*self.road_width and x < 0.25*self.road_width + radius):
+        elif (x > -0.75*self.road_width - radius and x < -0.75*self.road_width + radius) or (x > 0.25*self.road_width - radius and x < 0.25*self.road_width + radius):
             return Ground.PARTIALLY_OUT_OF_ROAD
         else:
             return Ground.LOST
