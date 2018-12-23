@@ -37,6 +37,7 @@ class World(object):
 
         self.time += self.dt
         self.my_bot_ground_type = self.check_ground(self.my_bot.pos(), self.my_bot.radius)
+        rospy.loginfo("[sim_node][world] My bot groundtype: " + str(self.my_bot_ground_type) + " at x: " + str(self.my_bot.pos()[0]))
         self.my_bot_safety_status = self.check_safety(self.my_bot, self.other_bot)
 
     def get_state(self):

@@ -64,21 +64,21 @@ class Agent(object):
         goal = [0, obs_msg.our_duckie_pose.y + 8]
         path, angles, moves, collision, rewards, visits, lost_candidates, lost_cand_collisions = self.planner.computePlan(goal, obs_msg)
 
-        print('other duckie pose')
-        print(str(obs_msg.other_duckie_pose.x) + '  ...  ' +str(obs_msg.other_duckie_pose.y)) 
+        #print('other duckie pose')
+        #print(str(obs_msg.other_duckie_pose.x) + '  ...  ' +str(obs_msg.other_duckie_pose.y)) 
 
         # print('angles')
         # print(angles)
-        print('moves:')
-        print(moves)
-        print('collision costs:')
-        print(collision)
-        print('path:')
-        print(path)
-        print('rewards:')
-        print(rewards)
-        print('node visits: ')
-        print(visits)
+        #print('moves:')
+        #print(moves)
+        #print('collision costs:')
+        #print(collision)
+        #print('path:')
+        #print(path)
+        #print('rewards:')
+        #print(rewards)
+        #print('node visits: ')
+        #print(visits)
 
 
         plan = []
@@ -86,17 +86,17 @@ class Agent(object):
         for move in moves:
             angle += move
             plan.append(angle)
-        print('radii: us and other duckie')
-        print(self.our_duckie_radius)
-        print(obs_msg.other_duckie_radius)
-        print('candidate rewards')
-        print(lost_candidates)
-        print('candidate collsiion costs')
-        print(lost_cand_collisions)
-        print('')
-        print('')
-        print('')
-        print('')
+        #print('radii: us and other duckie')
+        #print(self.our_duckie_radius)
+        #print(obs_msg.other_duckie_radius)
+        #print('candidate rewards')
+        #print(lost_candidates)
+        #print('candidate collsiion costs')
+        #print(lost_cand_collisions)
+        #print('')
+        #print('')
+        #print('')
+        #print('')
 
         return plan, timesteps
 

@@ -5,5 +5,5 @@ agent:
     y_horizon: 11.0 #m
     vel_resolution: 0.2
   computation_time:
-    mean: 3
-    std_dev: 1
+    mean: 1
+    std_dev: 0.1
