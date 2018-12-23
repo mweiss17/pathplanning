@@ -8,9 +8,8 @@ import rospy
 class Manager(object):
 
     def __init__(self, rewards):
-        # counts Agent points based on safety_status and ground_status
+        # counts Agent score based on safety_status and ground_status
         # logs recording and visualization
-        # counts timesteps and starts and stops sim
         self.rewards = rewards
 
         self.time = []

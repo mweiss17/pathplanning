@@ -71,8 +71,6 @@ class SimNode(object):
         self.pub_our_duckie_ground_type = rospy.Publisher("/sim/gt/our_duckie_ground_type",Int32TimeStep, queue_size=1)
         self.pub_world_state = rospy.Publisher("sim/gt/world_state", WorldState, queue_size=1)
 
-        #self.pub_pose_our_duckie_obs = rospy.Publisher("/sim/obs/pose_our_duckie",Pose2DTimeStep, queue_size=1)
-        #self.pub_pose_other_duckie_obs = rospy.Publisher("/sim/obs/pose_other_duckie",Pose2DTimeStep, queue_size=1)
         self.pub_observations = rospy.Publisher("/sim/obs/observations",Observation, queue_size=1)
 
         self.pub_image = rospy.Publisher("/sim/road_image", Image, queue_size=1)
@@ -99,25 +97,21 @@ class SimNode(object):
 
     def publish_obs(self):
         # Publishing the observations
-        #rospy.loginfo("[Sim] Publishing observations")
-
         time, ourd_p, ourd_v, _, _, othd_p, othd_v = self.world.get_state()
 
-        # Publish our duckie pose
+        # Prepare our duckie pose
         ourd_p_msg = Pose2DTimeStep()
         ourd_p_msg.time = time
         ourd_p_msg.x = ourd_p[0]
         ourd_p_msg.y = ourd_p[1]
         ourd_p_msg.theta = ourd_p[2]
-        #self.pub_pose_our_duckie_obs.publish(ourd_p_msg)
 
-        # Publish other duckie pose
+        # Prepare other duckie pose
         othd_p_msg = Pose2DTimeStep()
         othd_p_msg.time = time
         othd_p_msg.x = othd_p[0]
         othd_p_msg.y = othd_p[1]
         othd_p_msg.theta = othd_p[2]
-        #self.pub_pose_other_duckie_obs.publish(othd_p_msg)
 
         # Publish all observations
         obs_msg = Observation()
@@ -130,7 +124,6 @@ class SimNode(object):
         obs_msg.other_duckie_radius = self.other_duckie_radius
         self.pub_observations.publish(obs_msg)
 
-        #rospy.loginfo("[Sim] Published observations")
 
     def publish_state(self):
         # Publishing the state

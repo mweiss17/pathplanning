@@ -14,7 +14,6 @@ import time
 
 costMat = np.zeros((100,100,100))
 
-#MCTS scalar.  Larger scalar will increase exploitation, smaller will increase exploration
 
 class mctsPlanner():
 
