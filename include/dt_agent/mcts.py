@@ -78,8 +78,6 @@ class mctsPlanner():
 	def UCTSEARCH(self, budget, root):
 
 		for iter in range(int(budget)):
-			if iter%100 == 9:
-				print('iter')
 				# rospy.loginfo(root)
 			front = self.TREEPOLICY(root)
 
@@ -98,10 +96,8 @@ class mctsPlanner():
 				node = self.BESTCHILD(node,SCALAR)
 			else:
 				if node.fully_expanded() == False:	
-					# print('expand')
 					return self.EXPAND(node)
 				else:
-					# print('fully expanded so best child')
 					node = self.BESTCHILD(node, SCALAR)
 		return node
 
@@ -110,12 +106,9 @@ class mctsPlanner():
 		tried_children = [c.state for c in node.children]
 		tried_moves = [c.state.moves[-1] for c in node.children]
 		valid = list(set(node.state.MOVES).difference(tried_moves))
-
 		new_state = self.next_state(node.state, moves = valid)
 
-
 		node.add_child(new_state)
-
 		return node.children[-1]
 
 	def BESTCHILD_FINAL(self, node, scalar):
@@ -173,7 +166,7 @@ class mctsPlanner():
 	def forward_incentive(self, state):
 
 		diffy = state.y - self.starty
-		incentive = diffy/2.0
+		incentive = diffy
 
 		return incentive
 
@@ -222,8 +215,11 @@ class mctsPlanner():
 		nextstate.y = state.y + ((self.v * self.dt) /(1.0 * math.cos(nextstate.cum_angle)))
 
 
-		if(nextstate.y < state.y):
-			time.sleep(5)
+		# if(nextstate.y < state.y):
+		# 	print('y '+str(nextstate.y))
+		# 	print('y is less cause angle is : '+str(nextstate.cum_angle))
+
+		# 	time.sleep(6)
 		return nextstate
 
 	def check_ground(self, state):		
