@@ -59,10 +59,10 @@ class Agent(object):
         #prob = self.predictor.get_collision_probability(-0.25, 1, 20)
         #rospy.loginfo("Probability of collision at position -0.25, 1 at time 20 is: " + str (prob))
 
-        plan = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        #plan = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         timesteps = self.draw_computation_time_steps()
         goal = [0, obs_msg.our_duckie_pose.y + 8]
-        path, angles, moves, collision, rewards = self.planner.computePlan(goal, obs_msg)
+        path, angles, moves, collision, rewards, visits, lost_candidates, lost_cand_collisions = self.planner.computePlan(goal, obs_msg)
 
         print('other duckie pose')
         print(str(obs_msg.other_duckie_pose.x) + '  ...  ' +str(obs_msg.other_duckie_pose.y)) 
@@ -77,10 +77,27 @@ class Agent(object):
         print(path)
         print('rewards:')
         print(rewards)
-        plan = moves
+        print('node visits: ')
+        print(visits)
+
+
+        plan = []
+        angle = obs_msg.our_duckie_pose.theta
+        for move in moves:
+            angle += move
+            plan.append(angle)
         print('radii: us and other duckie')
         print(self.our_duckie_radius)
         print(obs_msg.other_duckie_radius)
+        print('candidate rewards')
+        print(lost_candidates)
+        print('candidate collsiion costs')
+        print(lost_cand_collisions)
+        print('')
+        print('')
+        print('')
+        print('')
+
         return plan, timesteps
 
     def draw_computation_time_steps(self):
