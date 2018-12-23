@@ -1,7 +1,7 @@
 
 sim:
   dt: 0.2
-  dt_in_sim: 0
+  dt_in_sim: 0.2
   image:
     output_image: true
     height: 1500

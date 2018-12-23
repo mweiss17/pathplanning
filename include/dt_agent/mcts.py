@@ -15,7 +15,6 @@ import time
 costMat = np.zeros((100,100,100))
 
 #MCTS scalar.  Larger scalar will increase exploitation, smaller will increase exploration
-SCALAR=1.5/math.sqrt(2.0)  			
 
 class mctsPlanner():
 
@@ -28,16 +27,19 @@ class mctsPlanner():
 		self.road_width = sim_params["road_width"]
 		self.v = our_duckie_params["velocity"]
 		self.radius = our_duckie_params["radius"]
+		self.angle_change_limit = our_duckie_params["angle_change_limit"]
 		self.reward_params = reward_params
+		self.SCALAR = agent_params["scalar"]
+		self.budget = agent_params["budget"]
 		# self.number_time_steps = int(self.time_horizon/self.dt)
 
-		self.number_time_steps = 20
+		self.number_time_steps = agent_params["time_steps"]
 
 
 	def computePlan(self, goal, obs_msg):
 		self.goal = goal
 		levels = 1
-		current_node = Node(State(turn = self.number_time_steps))
+		current_node = Node(State(turn = self.number_time_steps, angle_change_limit = self.angle_change_limit))
 
 		current_node.state.x = obs_msg.our_duckie_pose.x
 		current_node.state.y = obs_msg.our_duckie_pose.y
@@ -50,7 +52,7 @@ class mctsPlanner():
 		self.start_theta = current_node.state.cum_angle
 
 		for l in range(levels):
-			current_node=self.UCTSEARCH(2500,current_node)
+			current_node=self.UCTSEARCH(self.budget,current_node)
 		return self.bestPath(current_node)
 
 	def bestPath(self, node):
@@ -93,12 +95,12 @@ class mctsPlanner():
 				return self.EXPAND(node)
 			elif random.uniform(0,1)<.5:
 
-				node = self.BESTCHILD(node,SCALAR)
+				node = self.BESTCHILD(node, self.SCALAR)
 			else:
 				if node.fully_expanded() == False:	
 					return self.EXPAND(node)
 				else:
-					node = self.BESTCHILD(node, SCALAR)
+					node = self.BESTCHILD(node, self.SCALAR)
 		return node
 
 
@@ -236,10 +238,10 @@ class mctsPlanner():
 
 class State():
 
-	def __init__(self, moves = [], turn = 20):
+	def __init__(self, moves = [], turn = 20, angle_change_limit = 0.2):
 		self.turn = turn
 		self.moves = moves
-		self.MOVES = [-0.2, 0,  0.2]
+		self.MOVES = [-angle_change_limit, 0,  angle_change_limit]
 		self.cum_angle = 0 
 		self.x = 0
 		self.y = 0

@@ -18,8 +18,11 @@ class AgentNode(object):
         self.y_resolution = rospy.get_param("/agent/predictor/y_resolution")
         self.y_horizon = rospy.get_param("/agent/predictor/y_horizon")
         self.comp_time_mean = rospy.get_param("/agent/computation_time/mean")
-        self.comp_time_std_dev = rospy.get_param("/agent/computation_time/std_dev")        
-        self.agent_params = {"time_horizon": self.time_horizon, "vel_resolution": self.vel_resolution, "y_resolution": self.y_resolution, "y_horizon": self.y_horizon, "comp_time_mean": self.comp_time_mean, "comp_time_std_dev": self.comp_time_std_dev}
+        self.comp_time_std_dev = rospy.get_param("/agent/computation_time/std_dev")     
+        self.scalar = rospy.get_param("/agent/mcts/scalar")
+        self.budget = rospy.get_param("/agent/mcts/budget") 
+        self.time_steps = rospy.get_param("/agent/mcts/time_steps")
+        self.agent_params = {"time_horizon": self.time_horizon, "vel_resolution": self.vel_resolution, "y_resolution": self.y_resolution, "y_horizon": self.y_horizon, "comp_time_mean": self.comp_time_mean, "comp_time_std_dev": self.comp_time_std_dev, "scalar": self.scalar, "budget": self.budget, "time_steps": self.time_steps}
 
         ## Sim parameters
         self.dt = rospy.get_param("/sim/dt")

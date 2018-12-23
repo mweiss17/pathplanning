@@ -154,7 +154,7 @@ class PredictorDiscretePropagation(object):
             return 0
 
         if time >= self.time + self.time_horizon:
-            rospy.loginfo("[Agent][Predictor] Trying to get probability for a time that is further than time horizon: " + str(time))
+            #rospy.loginfo("[Agent][Predictor] Trying to get probability for a time that is further than time horizon: " + str(time))
             return 0
 
         time_key = int(round(time,2)*100)

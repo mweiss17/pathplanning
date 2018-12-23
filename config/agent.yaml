@@ -1,9 +1,13 @@
 agent:
   predictor:
-    time_horizon: 10.0 # seconds
+    time_horizon: 10.2 # seconds
     y_resolution: 0.1
     y_horizon: 11.0 #m
     vel_resolution: 0.2
   computation_time:
-    mean: 1
+    mean: 2
     std_dev: 0.1
+  mcts:
+    scalar: 1.414
+    budget: 5300
+    time_steps: 50
