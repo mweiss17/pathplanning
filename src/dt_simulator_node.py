@@ -62,7 +62,7 @@ class SimNode(object):
         # World
         self.world = World(self.sim_parameters, self.world_params, self.our_duckie_params, self.other_duckie_params)
         # Visualizer
-        self.visualizer = Visualizer(self.image_params, self.world_params, self.our_duckie_params, self.other_duckie_params)
+        self.visualizer = Visualizer(self.image_params, self.world_params, self.our_duckie_params, self.other_duckie_params, self.sim_parameters)
 
         # Publishers
         self.pub_pose_our_duckie = rospy.Publisher("/sim/gt/pose_our_duckie",Pose2DTimeStep, queue_size=1)
@@ -86,10 +86,15 @@ class SimNode(object):
         rospy.loginfo("[SimNode] Initialized.")
 
     def agent_command_cb(self, command_msg):
+        _, ourd_p, ourd_v, _, _, _, _ = self.world.get_state()
+        self.visualizer.update_trajectory(command_msg, ourd_p, ourd_v)
+
         self.publish_obs()
         orientation_seq = command_msg.orientation_seq.data
         computation_time_steps = command_msg.computation_time_steps
         self.propagate_action(orientation_seq, computation_time_steps)
+
+
 
 
     def publish_obs(self):
