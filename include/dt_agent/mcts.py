@@ -50,7 +50,7 @@ class mctsPlanner():
 		self.start_theta = current_node.state.cum_angle
 
 		for l in range(levels):
-			current_node=self.UCTSEARCH(2500,current_node)
+			current_node=self.UCTSEARCH(2000,current_node)
 		return self.bestPath(current_node)
 
 	def bestPath(self, node):
@@ -78,8 +78,8 @@ class mctsPlanner():
 	def UCTSEARCH(self, budget, root):
 
 		for iter in range(int(budget)):
-			# if iter%100 == 9:
-			# 	print('iter')
+			if iter%100 == 9:
+				print('iter')
 				# rospy.loginfo(root)
 			front = self.TREEPOLICY(root)
 
@@ -164,6 +164,12 @@ class mctsPlanner():
 			return None
 		return random.choice(bestchildren)
 
+
+	def centerlane_incentive(self, state):
+		incentive = abs(state.x)
+		return incentive
+
+
 	def forward_incentive(self, state):
 
 		diffy = state.y - self.starty
@@ -178,7 +184,7 @@ class mctsPlanner():
 
 	def get_collision_cost(self, state):
 		collision_cost = self.predictor.get_collision_probability(state.x, state.y, self.start_time+((self.number_time_steps - state.turn)*self.dt), self.radius)
-		return collision_cost*(-5000)
+		return collision_cost*(-1000)
 
 	def GETREWARD(self, state):		
 
@@ -187,7 +193,7 @@ class mctsPlanner():
 		ground_reward = self.reward_params[ground_type]
 		collision_cost = self.get_collision_cost(state)
 		state.collision_cost = collision_cost
-		reward = ground_reward + collision_cost + self.forward_incentive(state)
+		reward = ground_reward + collision_cost + self.forward_incentive(state) + self.centerlane_incentive(state)
 
 		return reward 
 
