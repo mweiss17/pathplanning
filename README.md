@@ -1,4 +1,8 @@
 # Path planning under uncertainty - DuckieTown 2018 UdeM
+Martin Weiss, Gunshi Gupta, Vincent Mai
+
+We provide a description of the motion planning problem and our results from this work [here](https://github.com/mweiss17/pathplanning).
+
 
 ## Installation
 Prerequisites: ROS Kinetic, Lunar or Melodic, Python 2.7, catkin, scipy
